@@ -1,0 +1,26 @@
+* Custom Meta search
+
+** Idea
+
+Kagi is a nice product but the company behind it has in my opinion a few problems that make it impossible for me to use.
+However I identified two main features that I think are the most useful and are something that I can replicate in my own project.
+
+1. You can change the order of the results by giving a certain site more weight or removing a site all together.
+2. You can add custom bangs.
+
+*** Custom ordering/weights for results
+
+I think this is a really powerful feature as it makes the results unique to you and you can remove results that are useless for you. E.g. when you know that a website stopped updating its content but the search engines still list it because they don't know the ecosystem surrounding that site well enough.
+
+*** Bangs
+
+Bangs are something, that I as far as I know, Duckduckgo invented and they allow you to quickly forward a query to a specific site, by prefixing the query with a specific string. E.g. =!g foo= will search on Google for =foo=.
+This can be really powerful, especially on mobile where it can be a convenient shortcut.
+Having a site that supports this makes it especially convenient as you don't have to setup each device according to your liking.
+
+*** Used search engines
+
+- Google
+- Bing
+- Duckduckgo
+- Yandex
