@@ -1,5 +1,4 @@
 * TODOs
-
 ** NEXT Setup Flake
 ** NEXT Setup Django project
 
