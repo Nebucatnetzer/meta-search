@@ -1,0 +1,23 @@
+* TODOs
+
+** NEXT Setup Flake
+** NEXT Setup Django project
+
+I think Django makes the most sense as I would like to add a login feature and I know that Django provides robust support in this area.
+Flask would be totally fine if I wouldn't need to store user settings and therefore requiere a login page.
+
+** NEXT Get API keys for searchs
+
+- [ ] Google
+- [ ] Bing
+- [ ] Yandex
+- [ ] Duckduckgo
+
+** NEXT Implement query functionality
+
+Just the basic functionality to get queries.
+
+** NEXT Make queries parallel
+
+For performance it makes probably the most sense then I request the query against all providers at once.
+Otherwise I have to wait longer and longer when I add more search engines.
