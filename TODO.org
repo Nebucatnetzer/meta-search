@@ -16,6 +16,13 @@ Flask would be totally fine if I wouldn't need to store user settings and theref
 
 Just the basic functionality to get queries.
 
+** NEXT Add models
+
+- [ ] Bangs
+- [ ] Users
+- [ ] Blocklist
+- [ ] Results and their weights
+
 ** NEXT Make queries parallel
 
 For performance it makes probably the most sense then I request the query against all providers at once.
