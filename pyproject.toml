@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "metasearch"
+name = "zweili_search"
 version = "0.1.0"
 requires-python = ">=3.12"
 description = "My attempt at a meta search engine."

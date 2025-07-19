@@ -38,7 +38,7 @@
               self = myPython;
               packageOverrides = pyfinal: pyprev: {
                 # An editable package with a script that loads our mutable location
-                metasearch-editable = pyfinal.mkPythonEditablePackage {
+                zweili-search-editable = pyfinal.mkPythonEditablePackage {
                   # Inherit project metadata from pyproject.toml
                   pname = pyproject.project.name;
                   inherit (pyproject.project) version;
@@ -52,7 +52,7 @@
             pythonDev = myPython.withPackages (p: [
               p.django
               p.gunicorn
-              p.metasearch-editable
+              p.zweili-search-editable
               p.mypy
               p.pylint
               p.pylsp-mypy
@@ -74,7 +74,7 @@
                   settings.processes.gunicorn = {
                     command = ''
                       cd "$DEVENV_ROOT"
-                      ${pythonDev}/bin/gunicorn --bind=0.0.0.0 zweili_search.main:app
+                      ${pythonDev}/bin/gunicorn --bind=0.0.0.0 zweili_metasearch.main:app
                     '';
                   };
                 }
@@ -82,8 +82,8 @@
             };
             packages = {
               inherit pkgs;
-              snapbin-image = pkgs.dockerTools.buildImage {
-                name = "snapbin";
+              zweili_search-image = pkgs.dockerTools.buildImage {
+                name = "zweili-metasearch";
                 tag = "latest";
                 copyToRoot = pkgs.buildEnv {
                   name = "image-root";
@@ -96,7 +96,7 @@
                   Cmd = [
                     "${pythonProd}/bin/gunicorn"
                     "--bind=0.0.0.0"
-                    "snapbin.main:app"
+                    "zweili_search.main:app"
                   ];
                 };
               };
@@ -117,9 +117,8 @@
                 PC_PORT_NUM = "9999";
               };
               packages = [
-
                 (pkgs.buildEnv {
-                  name = "sort-of-pastebin-devShell";
+                  name = "zweili-metasearch-devShell";
                   paths = [
                     pkgs.black
                     pkgs.isort
