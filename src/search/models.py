@@ -35,6 +35,9 @@ class BlockList(models.Model):
         BlockedDomain, related_name="blocklists", help_text="List of blocked domains"
     )
 
+    def __str__(self):
+        return f"Block list for {self.user}"
+
 
 class SearchUser(AbstractUser):
     pass
