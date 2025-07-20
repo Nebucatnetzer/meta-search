@@ -28,8 +28,10 @@ class BlockedDomain(models.Model):
 
 
 class BlockList(models.Model):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="blocklist"
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="blocklist",
     )
     blocked_domains = models.ManyToManyField(
         BlockedDomain, related_name="blocklists", help_text="List of blocked domains"
