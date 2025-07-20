@@ -124,6 +124,9 @@
                   paths = [
                     pkgs.black
                     pkgs.isort
+                    pkgs.nixfmt-rfc-style
+                    pkgs.shellcheck
+                    pkgs.shfmt
                   ];
                   pathsToLink = [ "/bin" ];
                 })
