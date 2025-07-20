@@ -112,8 +112,6 @@ def filter_blocked(
         ):
             continue
         filtered.append(r)
-
-    breakpoint()
     return filtered
 
 
@@ -141,7 +139,6 @@ def filter_results(
         if r_id and r_id not in seen:
             seen.add(r_id)
             unique_results.append(r)
-    breakpoint()
     return filter_blocked(unique_results, blocked_domains)
 
 
@@ -156,7 +153,6 @@ def parallel_search(query: str, user: AbstractUser):
             res = fut.result()
             all_results.extend(res if isinstance(res, list) else [])
 
-    breakpoint()
     # Remove duplicates (by URL lowercased)
     blocked_domains = get_blocked_domains(user)
     filtered_results = filter_results(
