@@ -1,26 +1,63 @@
 * Custom Meta search
 
+This is at them moment not production ready!
+There are some security related adjustments I have to make before one should use this.
+
 ** Idea
 
-Kagi is a nice product but the company behind it has in my opinion a few problems that make it impossible for me to use.
-However I identified two main features that I think are the most useful and are something that I can replicate in my own project.
+Kagi is a good product, but in my opinion, the company behind it has a few issues that make it impossible for me to use.
+However, I have identified two main features that I find most useful and that I can replicate in my own project.
 
-1. You can change the order of the results by giving a certain site more weight or removing a site all together.
+1. You can change the order of results by giving certain sites more weight or
+   by removing a site altogether.
 2. You can add custom bangs.
 
 *** Custom ordering/weights for results
 
-I think this is a really powerful feature as it makes the results unique to you and you can remove results that are useless for you. E.g. when you know that a website stopped updating its content but the search engines still list it because they don't know the ecosystem surrounding that site well enough.
+I believe this is a powerful feature, as it personalizes the results and allows you to remove those that are irrelevant to you.
+For example, if you know that a website has stopped updating its content but search engines still list it because they are not familiar enough with the site's ecosystem, you should be able to remove it from the results.
 
 *** Bangs
 
-Bangs are something, that I as far as I know, Duckduckgo invented and they allow you to quickly forward a query to a specific site, by prefixing the query with a specific string. E.g. =!g foo= will search on Google for =foo=.
-This can be really powerful, especially on mobile where it can be a convenient shortcut.
-Having a site that supports this makes it especially convenient as you don't have to setup each device according to your liking.
+Bangs are, as far as I know, a feature invented by DuckDuckGo.
+They allow you to quickly forward a query to a specific site by prefixing the query with a designated string.
+For example, =!g foo= will search for =foo= on Google.
+
+This can be very powerful, especially on mobile devices, where it serves as a convenient shortcut.
+Having a site that supports this feature makes it particularly convenient, as you don’t have to configure each device to your preferences.
 
 *** Used search engines
 
+- Duckduckgo
+
+**** Planed implementations
+
 - Google
 - Bing
-- Duckduckgo
 - Yandex
+
+** Setup
+*** Getting started
+
+The easiest way is to get the ~docker-compose.yml~ from this repository and use ~podman compose up~ to run it.
+The site will then be accessible under: [[http://localhost:8000]]
+
+The default admin user is: =admin=
+The password is: =password=
+
+*** Configuration
+
+In order to have a production ready system you need to tweak a few configurations.
+
+- ~ZWEILI_SEARCH_DOMAIN~ :: The domain under which you search site should be accessible. E.g. =foo.example.org=
+- ~ZWEILI_SEARCH_DB_DIR~ :: The path where you want to store the SQLite DB. By default it is =/var/lib/zweili_search=
+- ~ZWEILI_SEARCH_STATIC_ROOT~ :: The path where you want to store the static files. By default it is =/var/lib/zweili_search=. This might disappear in the future as I integrate the static files directly into the Nginx image.
+
+** Usage
+
+You can enter a search query right away and it will start searching on all the configured search engines.
+At the moment it is only DuckDuckGo.
+
+When you go to [[https://your.domain.com/admin]] you can configure domains you want to block or setup custom bangs.
+They are always tied to a specific user so make sure you select the correct one otherwise they will not work or another will get your settings by accident.
+For the moment user specific settings aren't planed from my side as I will only allow trusted users on my instance.
