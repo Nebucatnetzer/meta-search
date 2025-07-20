@@ -41,6 +41,7 @@ ALLOWED_HOSTS = [
     socket.getfqdn(),
     socket.gethostname(),
     socket.gethostbyname(socket.gethostname()),
+    ZWEILI_SEARCH_DOMAIN,
 ]
 
 CSRF_TRUSTED_ORIGINS = [f"https://{ZWEILI_SEARCH_DOMAIN}"]
