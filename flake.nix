@@ -51,6 +51,7 @@
 
             pythonDev = myPython.withPackages (p: [
               p.django
+              p.django-types
               p.gunicorn
               p.zweili-search-editable
               p.mypy
