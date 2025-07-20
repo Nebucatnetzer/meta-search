@@ -90,11 +90,11 @@ def get_domain_from_url(url: str) -> Optional[str]:
 
 def filter_blocked(
     results: Sequence[Any],
-    block_domains: Sequence[str],
+    blocked_domains: Sequence[str],
 ) -> List[Any]:
-    if not block_domains:
+    if not blocked_domains:
         return list(results)
-    block_domains_set: Set[str] = set(d.lstrip("www.") for d in block_domains)
+    blocked_domains_set: Set[str] = set(d.lstrip("www.") for d in block_domains)
     filtered: List[Any] = []
     for r in results:
         url: Optional[str] = None
@@ -108,28 +108,29 @@ def filter_blocked(
         else:
             domain = None
         if domain and any(
-            domain == blk or domain.endswith("." + blk) for blk in block_domains_set
+            domain == blk or domain.endswith("." + blk) for blk in blocked_domains_set
         ):
             continue
         filtered.append(r)
+
+    breakpoint()
     return filtered
 
 
-def parallel_search(query: str, user: AbstractUser):
-    query = query.strip()
-    blocked_domains = BlockList.objects.get(user=user)
-    block_domains: List[str] = (
-        blocked_domains.domains if hasattr(blocked_domains, "domains") else []
-    )
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = [
-            executor.submit(fetch_results, engine, query) for engine in SEARCH_ENGINES
-        ]
-        all_results: List[Any] = []
-        for fut in concurrent.futures.as_completed(futures):
-            res = fut.result()
-            all_results.extend(res if isinstance(res, list) else [])
-    # Remove duplicates (by URL lowercased)
+def get_blocked_domains(user: AbstractUser) -> list[str | None]:
+    blocklist = BlockList.objects.filter(user=user)
+    if blocklist:
+        blocked_domains: List[str] = (
+            blocklist.domains if hasattr(blocklist, "domains") else []
+        )
+    else:
+        blocked_domains = []
+    return blocked_domains
+
+
+def filter_results(
+    all_results: list[Any], blocked_domains: list[str | None]
+) -> list[Any]:
     seen: Set[str] = set()
     unique_results: List[Any] = []
     for r in all_results:
@@ -140,5 +141,25 @@ def parallel_search(query: str, user: AbstractUser):
         if r_id and r_id not in seen:
             seen.add(r_id)
             unique_results.append(r)
-    filtered_results: List[Any] = filter_blocked(unique_results, block_domains)
+    breakpoint()
+    return filter_blocked(unique_results, blocked_domains)
+
+
+def parallel_search(query: str, user: AbstractUser):
+    query = query.strip()
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = [
+            executor.submit(fetch_results, engine, query) for engine in SEARCH_ENGINES
+        ]
+        all_results: List[Any] = []
+        for fut in concurrent.futures.as_completed(futures):
+            res = fut.result()
+            all_results.extend(res if isinstance(res, list) else [])
+
+    breakpoint()
+    # Remove duplicates (by URL lowercased)
+    blocked_domains = get_blocked_domains(user)
+    filtered_results = filter_results(
+        all_results=all_results, blocked_domains=blocked_domains
+    )
     return filtered_results

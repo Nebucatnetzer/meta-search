@@ -19,7 +19,8 @@ def resolve_bang(user, query):
         shortcut, search_query = parts
     bang_qs = Bang.objects.filter(user=user, shortcut=shortcut)
     if not bang_qs.exists():
-        return None, None
+        # Return the query without the bag in order to avoid it getting eaten by other search engines
+        return None, search_query
     bang = bang_qs.first()
     # Substitute {query} with the actual user query (escaped)
 
