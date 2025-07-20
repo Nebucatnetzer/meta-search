@@ -123,6 +123,7 @@
                   paths = [
                     pkgs.black
                     pkgs.isort
+                    pkgs.nodePackages.prettier
                     pkgs.nixfmt-rfc-style
                     pkgs.shellcheck
                     pkgs.shfmt
