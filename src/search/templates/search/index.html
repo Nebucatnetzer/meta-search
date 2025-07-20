@@ -1,6 +1,23 @@
 {% extends "base.html" %}
 {% block content %}
-    Hello, {{ user.username|default:"Guest" }}!
+
+    {% if user.is_authenticated %}
+    <form action="{% url 'index' %}" method="get" onsubmit="event.stopPropagation();">
+      <label for="query">Search:</label>
+      <input type="text" id="query" name="query" required value="{{ request.GET.query|default_if_none:'' }}">
+      <button type="submit">Submit</button>
+    </form>
+    {% endif %}
+
+    {% if results %}
+    <ul>
+    {% for result in results %}
+        <li>{{ result.link }}</li>
+    {% endfor %}
+    </ul>
+    {% endif %}
+
+
     <hr />
     {% if user.is_authenticated %}
         {% include "registration/_logout.html" %}
