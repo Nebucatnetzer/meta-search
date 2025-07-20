@@ -11,7 +11,7 @@
       {% if results %}
       <ul>
       {% for result in results %}
-          <li>{{ result.link }}</li>
+          <li><a href="{{result.url}}">{{ result.title }}</a></li>
       {% endfor %}
       </ul>
       {% endif %}
