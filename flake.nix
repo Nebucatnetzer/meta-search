@@ -89,7 +89,7 @@
                   settings.processes.django = {
                     command = ''
                       cd "$DEVENV_ROOT/src"
-                      ${pythonDev}/bin/python manage.py runserver
+                      ${pythonDev.interpreter} manage.py runserver
                     '';
                   };
                 }
@@ -105,17 +105,16 @@
                   paths = [
                     pythonProd
                     (pkgs.writeShellScriptBin "start-app" ''
-                      if [ -f .first_run ]; then
-                          sleep 2
-                          ${pythonProd}/bin/django-admin collectstatic --noinput
-                          ${pythonProd}/bin/django-admin migrate
+                      if [ -f /var/lib/zweili_search/first_run ]; then
+                          ${pythonProd.interpreter} -m django collectstatic --noinput
+                          ${pythonProd.interpreter} -m django migrate
                       else
-                          ${pythonProd}/bin/django-admin collectstatic --noinput
-                          ${pythonProd}/bin/django-admin migrate
-                          ${pythonProd}/bin/django-admin shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@example.com', 'password')"
-                          touch .first_run
+                          ${pythonProd.interpreter} -m django collectstatic --noinput
+                          ${pythonProd.interpreter} -m django migrate
+                          ${pythonProd.interpreter} -m django shell < ${./tooling/bin/create_admin.py}
+                          ${pythonProd.interpreter} -c "from pathlib import Path; Path('/var/lib/zweili_search/first_run').touch()"
                       fi
-                      ${pythonProd}/bin/gunicorn zweili_search.wsgi:application --reload --bind 0.0.0.0:8000 --workers 3
+                      ${pythonProd.interpreter} -m gunicorn zweili_search.wsgi:application --reload --bind 0.0.0.0:8000 --workers 3
                     '')
 
                   ];

@@ -13,6 +13,12 @@ authors = [
 license = "GPL-3.0-or-later"
 readme = {file = "README.org", content-type = "text/plain"}
 
+[tool.hatch.build.targets.wheel]
+packages = [
+  "src/search/",
+  "src/zweili_search/",
+]
+
 [tool.pylint.MASTER]
 ignore = ["manage.py", "migrations"]
 

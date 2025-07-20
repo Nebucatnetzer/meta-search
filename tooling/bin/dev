@@ -74,7 +74,7 @@ tasks["test"]=test
 image() {
     podman load <$(nix build .#app-image --no-link --print-out-paths)
     podman load <$(nix build .#nginx-image --no-link --print-out-paths)
-    podman compose up
+    podman compose up --force-recreate --pull-always --remove-orphans
 }
 descriptions["image"]="Build and load docker images."
 tasks["image"]=image
