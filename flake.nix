@@ -50,6 +50,7 @@
             };
 
             pythonDev = myPython.withPackages (p: [
+              p.beautifulsoup4
               p.django
               p.django-types
               p.gunicorn
@@ -61,10 +62,14 @@
               p.pytest-cov
               p.pytest-xdist
               p.python-lsp-server
+              p.requests
+              p.types-beautifulsoup4
             ]);
             pythonProd = myPython.withPackages (p: [
+              p.beautifulsoup4
               p.django
               p.gunicorn
+              p.requests
             ]);
           in
           {
