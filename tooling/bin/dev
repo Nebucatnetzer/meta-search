@@ -1,3 +1,88 @@
 #!/usr/bin/env bash
+
+set -euo pipefail
+
 cd "$DEVENV_ROOT"
-nix run .#dev-services
+
+_setup() {
+    if [ -f "$DEVENV_STATE"/first_run ]; then
+        sleep 2
+        python ./src/manage.py makemigrations
+        python ./src/manage.py migrate
+    else
+        python ./src/manage.py collectstatic --noinput
+        python ./src/manage.py makemigrations search
+        python ./src/manage.py makemigrations
+        python ./src/manage.py migrate
+        python ./src/manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@example.com', 'password')"
+        touch "$DEVENV_STATE"/first_run
+    fi
+}
+
+# Main tasks start
+declare -A tasks
+declare -A descriptions
+
+run() {
+    _setup
+    find . -name __pycache__ -o -name "*.pyc" -delete
+    nix run .#dev-services
+}
+descriptions["run"]="Start the webserver."
+tasks["run"]=run
+descriptions["start"]="Alias for run."
+tasks["start"]=run
+
+clean() {
+    find . \( -name __pycache__ -o -name "*.pyc" \) -delete
+    rm -rf htmlcov/
+    rm -rf "$DEVENV_STATE"
+    mkdir -p "$DEVENV_STATE"
+}
+descriptions["clean"]="Reset the project to a fresh state including the database."
+tasks["clean"]=clean
+
+debug() {
+    pytest --pdb --nomigrations --cov=. --cov-report=html ./src/
+}
+descriptions["debug"]="Run the tests and drop into the debugger on failure."
+tasks["debug"]=debug
+
+lint() {
+    echo "Running pylint"
+    pylint \
+        --rc-file="$DEVENV_ROOT/pyproject.toml" \
+        -j 0 \
+        -E "$DEVENV_ROOT/src"
+    echo "Running mypy"
+    mypy --config-file="$DEVENV_ROOT/pyproject.toml" "$DEVENV_ROOT/src"
+}
+descriptions["lint"]="Run the linters against the src directory."
+tasks["lint"]=lint
+
+test() {
+    DJANGO_SETTINGS_MODULE=zweili_search.settings.ram_test pytest \
+        -nauto \
+        --nomigrations \
+        --cov-config="$DEVENV_ROOT/.coveragerc" \
+        --cov-report=html \
+        "$DEVENV_ROOT/src"
+}
+descriptions["test"]="Run the tests in the RAM DB and write a coverage report."
+tasks["test"]=test
+
+# only one task at a time
+if [ $# != 1 ]; then
+    printf "usage: dev <task_name>\n\n"
+    for task in "${!tasks[@]}"; do
+        echo "$task - ${descriptions[$task]}"
+    done
+
+else
+    # Check if task is available
+    if [[ -v "tasks[$1]" ]]; then
+        ${tasks["$1"]}
+    else
+        echo "Task not found."
+    fi
+fi

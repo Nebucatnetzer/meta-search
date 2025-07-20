@@ -75,7 +75,6 @@
                   settings.processes.django = {
                     command = ''
                       cd "$DEVENV_ROOT/src"
-                      ${pythonDev}/bin/python manage.py migrate
                       ${pythonDev}/bin/python manage.py runserver
                     '';
                   };

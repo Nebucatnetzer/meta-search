@@ -268,3 +268,4 @@ tags
 # Persistent undo
 [._]*.un~
 
+/.devenv/
