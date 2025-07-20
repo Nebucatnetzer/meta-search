@@ -22,8 +22,19 @@ Just the basic functionality to get queries.
 - [ ] Users
 - [ ] Blocklist
 - [ ] Results and their weights
+- [ ] providers
+  I could probably store the API key next to them?
+  #+begin_src python
+  google = {
+    name: "Google",
+    url: "https://google.ch",
+    api_key: os.environ['GOOGLE_API_KEY']
+  }
+  #+end_src
 
 ** NEXT Make queries parallel
 
 For performance it makes probably the most sense then I request the query against all providers at once.
 Otherwise I have to wait longer and longer when I add more search engines.
+
+** NEXT Read ENV files
