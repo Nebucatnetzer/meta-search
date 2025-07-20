@@ -16,12 +16,4 @@
       </ul>
       {% endif %}
     {% endif %}
-
-
-    <hr />
-    {% if user.is_authenticated %}
-        {% include "registration/_logout.html" %}
-    {% else %}
-        <a href="{% url 'login' %}">Login</a>
-    {% endif %}
 {% endblock content %}
