@@ -83,47 +83,33 @@ def fetch_results(engine: Engine, query: str) -> List[Any]:
     return engine.parser(resp)
 
 
-def get_domain_from_url(url: str) -> Optional[str]:
-    parts = urllib.parse.urlparse(url)
-    return parts.netloc.lower()
-
-
 def filter_blocked(
     results: Sequence[Any],
     blocked_domains: Sequence[str],
 ) -> List[Any]:
     if not blocked_domains:
         return list(results)
-    blocked_domains_set: Set[str] = set(d.lstrip("www.") for d in block_domains)
     filtered: List[Any] = []
-    for r in results:
+    for result in results:
         url: Optional[str] = None
-        if isinstance(r, dict):
-            url = r.get("url") or r.get("link") or r.get("href")
-        elif isinstance(r, str):
-            url = r
-        if url:
-            domain = get_domain_from_url(url)
-            domain = (domain or "").lstrip("www.")
-        else:
-            domain = None
-        if domain and any(
-            domain == blk or domain.endswith("." + blk) for blk in blocked_domains_set
-        ):
+        if isinstance(result, dict):
+            url = result.get("url") or result.get("link") or result.get("href")
+        elif isinstance(result, str):
+            url = result
+        if url and any(domain in url for domain in blocked_domains):
             continue
-        filtered.append(r)
+        filtered.append(result)
     return filtered
 
 
-def get_blocked_domains(user: AbstractUser) -> list[str | None]:
-    blocklist = BlockList.objects.filter(user=user)
-    if blocklist:
-        blocked_domains: List[str] = (
-            blocklist.domains if hasattr(blocklist, "domains") else []
+def get_blocked_domains(user: AbstractUser) -> list[str]:
+    blocklists = BlockList.objects.filter(user=user)
+    blocked_domains = []
+    for blocklist in blocklists:
+        blocked_domains.extend(
+            blocklist.blocked_domains.values_list("domain", flat=True)
         )
-    else:
-        blocked_domains = []
-    return blocked_domains
+    return list(set(blocked_domains))
 
 
 def filter_results(
