@@ -13,6 +13,9 @@ authors = [
 license = "GPL-3.0-or-later"
 readme = {file = "README.org", content-type = "text/plain"}
 
+[tool.pylint.MASTER]
+ignore = ["manage.py", "migrations"]
+
 [tool.pylint."MESSAGES CONTROL"]
 disable = [
     "missing-module-docstring",
@@ -22,6 +25,4 @@ disable = [
 
 [tool.isort]
 force_single_line = true
-
-[tool.mypy]
-strict = true
+skip_glob = ["*/migrations/*"]
