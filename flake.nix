@@ -116,6 +116,10 @@
                 mkdir -p "$DEVENV_STATE"
                 PATH="$DEVENV_ROOT/tooling/bin:$PATH"
                 export PATH
+                ZWEILI_SEARCH_DB_DIR="$DEVENV_STATE"
+                export ZWEILI_SEARCH_DB_DIR
+                ZWEILI_STATIC_ROOT="$DEVENV_STATE"
+                export ZWEILI_STATIC_ROOT
               '';
               env = {
                 DEBUG = "True";

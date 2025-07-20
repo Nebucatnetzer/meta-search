@@ -24,7 +24,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-o7g7m2pl*_opz6@)(w2jb5=@44rsl(e63-lr3m$!u#s$)pym=1"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", False)
+ZWEILI_SEARCH_DB_DIR = Path(
+    os.getenv("ZWEILI_SEARCH_DB_DIR", "/var/lib/zweili_search/")
+)
+ZWEILI_STATIC_ROOT = Path(os.getenv("ZWEILI_SEARCH_DB_DIR", "/var/lib/zweili_search/"))
 
 ALLOWED_HOSTS = []
 
@@ -79,7 +83,7 @@ WSGI_APPLICATION = "zweili_search.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": ZWEILI_SEARCH_DB_DIR.joinpath("db.sqlite3"),
     }
 }
 
@@ -119,7 +123,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "static/"
-STATIC_ROOT = os.path.join(BASE_DIR, "..", "static")
+STATIC_ROOT = ZWEILI_STATIC_ROOT.joinpath("static")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
