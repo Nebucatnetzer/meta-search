@@ -71,6 +71,14 @@ test() {
 descriptions["test"]="Run the tests in the RAM DB and write a coverage report."
 tasks["test"]=test
 
+image() {
+    podman load <$(nix build .#app-image --no-link --print-out-paths)
+    podman load <$(nix build .#nginx-image --no-link --print-out-paths)
+    podman compose up
+}
+descriptions["image"]="Build and load docker images."
+tasks["image"]=image
+
 # only one task at a time
 if [ $# != 1 ]; then
     printf "usage: dev <task_name>\n\n"

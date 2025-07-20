@@ -37,6 +37,14 @@
             myPython = pkgs.python312.override {
               self = myPython;
               packageOverrides = pyfinal: pyprev: {
+                zweili-search = pyfinal.buildPythonPackage {
+                  pname = "zweili-search";
+                  inherit (pyproject.project) version;
+                  pyproject = true;
+                  src = ./.;
+                  propagatedBuildInputs = [ pyfinal.hatchling ];
+
+                };
                 # An editable package with a script that loads our mutable location
                 zweili-search-editable = pyfinal.mkPythonEditablePackage {
                   # Inherit project metadata from pyproject.toml
@@ -70,6 +78,7 @@
               p.django
               p.gunicorn
               p.requests
+              p.zweili-search
             ]);
           in
           {
@@ -87,23 +96,65 @@
               ];
             };
             packages = {
-              inherit pkgs;
-              zweili_search-image = pkgs.dockerTools.buildImage {
-                name = "zweili-metasearch";
+              inherit pkgs pythonProd;
+              app-image = pkgs.dockerTools.buildImage {
+                name = "zweili-search-app";
                 tag = "latest";
                 copyToRoot = pkgs.buildEnv {
                   name = "image-root";
                   paths = [
                     pythonProd
-                    self
+                    (pkgs.writeShellScriptBin "start-app" ''
+                      if [ -f .first_run ]; then
+                          sleep 2
+                          ${pythonProd}/bin/django-admin collectstatic --noinput
+                          ${pythonProd}/bin/django-admin migrate
+                      else
+                          ${pythonProd}/bin/django-admin collectstatic --noinput
+                          ${pythonProd}/bin/django-admin migrate
+                          ${pythonProd}/bin/django-admin shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@example.com', 'password')"
+                          touch .first_run
+                      fi
+                      ${pythonProd}/bin/gunicorn zweili_search.wsgi:application --reload --bind 0.0.0.0:8000 --workers 3
+                    '')
+
                   ];
                 };
                 config = {
-                  Cmd = [
-                    "${pythonProd}/bin/gunicorn"
-                    "--bind=0.0.0.0"
-                    "zweili_search.main:app"
+                  Cmd = [ "start-app" ];
+                  Env = [
+                    "DJANGO_SETTINGS_MODULE=zweili_search.settings"
                   ];
+                  ExposedPorts = {
+                    "8000/tcp" = { };
+                  };
+                };
+              };
+              nginx-image = pkgs.dockerTools.buildLayeredImage {
+                name = "zweili-search-nginx";
+                tag = "latest";
+                contents = [
+                  pkgs.fakeNss
+                  pkgs.nginx
+                ];
+
+                extraCommands = ''
+                  mkdir -p tmp/nginx_client_body
+
+                  # nginx still tries to read this directory even if error_log
+                  # directive is specifying another file :/
+                  mkdir -p var/log/nginx
+                '';
+
+                config = {
+                  Cmd = [
+                    "nginx"
+                    "-c"
+                    ./tooling/nginx/nginx.conf
+                  ];
+                  ExposedPorts = {
+                    "80/tcp" = { };
+                  };
                 };
               };
             };

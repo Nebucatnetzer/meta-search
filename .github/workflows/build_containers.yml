@@ -1,0 +1,31 @@
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-app-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.1
+      - uses: wimpysworld/nothing-but-nix@main
+      - uses: cachix/install-nix-action@v31.3.0
+      - name: Build app image
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_USERNAME: ${{ github.actor }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: ./tooling/bin/build-app-image.sh
+
+  build-nginx-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.1
+      - uses: wimpysworld/nothing-but-nix@main
+      - uses: cachix/install-nix-action@v31.3.0
+      - name: Build nginx image
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_USERNAME: ${{ github.actor }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: ./tooling/bin/build-nginx-image.sh
