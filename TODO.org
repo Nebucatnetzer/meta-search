@@ -1,26 +1,18 @@
 * TODOs
-** NEXT Setup Flake
-** NEXT Setup Django project
-
-I think Django makes the most sense as I would like to add a login feature and I know that Django provides robust support in this area.
-Flask would be totally fine if I wouldn't need to store user settings and therefore requiere a login page.
-
 ** NEXT Get API keys for searchs
 
 - [ ] Google
-- [ ] Bing
+- [X] Bing
+  Doesn't have an API
 - [ ] Yandex
-- [ ] Duckduckgo
-
-** NEXT Implement query functionality
-
-Just the basic functionality to get queries.
+- [X] Duckduckgo
+  Doesn't have an API
 
 ** NEXT Add models
 
-- [ ] Bangs
-- [ ] Users
-- [ ] Blocklist
+- [X] Bangs
+- [X] Users
+- [X] Blocklist
 - [ ] Results and their weights
 - [ ] providers
   I could probably store the API key next to them?
@@ -32,9 +24,26 @@ Just the basic functionality to get queries.
   }
   #+end_src
 
-** NEXT Make queries parallel
+** NEXT Implement weights
+
+I want to be able to down-/uprank certain domains.
+
+** NEXT Read ENV files
+** DONE Implement query functionality
+CLOSED: [2025-07-20 Sun 20:15]
+
+Just the basic functionality to get queries.
+
+** DONE Make queries parallel
+CLOSED: [2025-07-20 Sun 20:14]
 
 For performance it makes probably the most sense then I request the query against all providers at once.
 Otherwise I have to wait longer and longer when I add more search engines.
 
-** NEXT Read ENV files
+** DONE Setup Flake
+CLOSED: [2025-07-20 Sun 20:15]
+** DONE Setup Django project
+CLOSED: [2025-07-20 Sun 20:15]
+
+I think Django makes the most sense as I would like to add a login feature and I know that Django provides robust support in this area.
+Flask would be totally fine if I wouldn't need to store user settings and therefore requiere a login page.
