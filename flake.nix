@@ -23,6 +23,7 @@
         };
         systems = [
           # systems for which you want to build the `perSystem` attributes
+          "aarch64-linux"
           "x86_64-linux"
           # ...
         ];
@@ -124,10 +125,19 @@
               ];
             };
             packages = {
-              inherit pkgs pythonProd;
+              inherit pythonProd;
+              ci-tools = pkgs.buildEnv {
+                name = "ci-tools";
+                paths = [
+                  pkgs.skopeo
+                  pkgs.manifest-tool
+                ];
+                pathsToLink = [ "/bin" ];
+              };
               app-image = pkgs.dockerTools.buildImage {
                 name = "zweili-search-app";
                 tag = "latest";
+                architecture = "linux/arm64";
                 copyToRoot = pkgs.buildEnv {
                   name = "image-root";
                   paths = [
@@ -214,6 +224,7 @@
                     pkgs.nixfmt-rfc-style
                     pkgs.shellcheck
                     pkgs.shfmt
+                    pkgs.skopeo
                   ];
                   pathsToLink = [ "/bin" ];
                 })

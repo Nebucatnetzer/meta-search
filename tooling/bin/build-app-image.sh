@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
-PATH="$(nix build .#pkgs.skopeo --no-link --print-out-paths)/bin:$PATH"
-echo "$GITHUB_TOKEN" | skopeo login ghcr.io --username "$GITHUB_USERNAME" --password-stdin
-result=$(nix build .#app-image --no-link --print-out-paths)
+set -euo pipefail
+
+PATH="$(nix build .#ci-tools --no-link --print-out-paths)/bin:$PATH"
+echo "$REGISTRY_PASS" | skopeo login ghcr.io --username "$REGISTRY_USER" --password-stdin
+result=$(nix build .#packages.aarch64-linux.app-image --no-link --print-out-paths)
 # ${variabe,,} converts a string to lowercase
-skopeo copy --insecure-policy docker-archive://"$result" docker://"ghcr.io/${GITHUB_REPOSITORY,,}/zweili-search-app:latest"
+skopeo copy --all --insecure-policy docker-archive://"$result" "docker://${REGISTRY,,}/zweili-search-app:latest"
+
+manifest-tool --username $REGISTRY_USER --password $REGISTRY_PASS push from-args --platforms linux/amd64,linux/arm64 --template "${REGISTRY,,}"/zweili-search-app:latest --target $REGISTRY/zweili-search-app:latest

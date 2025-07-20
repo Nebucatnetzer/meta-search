@@ -6,18 +6,22 @@ on:
     branches: [ "test-ci" ]
   workflow_dispatch:
 
+env:
+  REGISTRY: ghcr.io/${{ github.repository }}
+  REGISTRY_USER: ${{ github.actor }}
+  REGISTRY_PASS: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   build-app-image:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.1.1
       - uses: wimpysworld/nothing-but-nix@main
+      - uses: docker/setup-qemu-action@v3
       - uses: cachix/install-nix-action@v31.3.0
+        with:
+          extra_nix_config: "extra-platforms = aarch64-linux"
       - name: Build app image
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_USERNAME: ${{ github.actor }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
         run: ./tooling/bin/build-app-image.sh
 
   build-nginx-image:
@@ -27,8 +31,4 @@ jobs:
       - uses: wimpysworld/nothing-but-nix@main
       - uses: cachix/install-nix-action@v31.3.0
       - name: Build nginx image
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_USERNAME: ${{ github.actor }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
         run: ./tooling/bin/build-nginx-image.sh
