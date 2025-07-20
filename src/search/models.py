@@ -20,5 +20,21 @@ class Bang(models.Model):
         return f"!{self.shortcut} -> {self.url_template}"
 
 
+class BlockedDomain(models.Model):
+    domain = models.CharField(max_length=255, unique=True)
+
+    def __str__(self):
+        return self.domain
+
+
+class BlockList(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="blocklist"
+    )
+    blocked_domains = models.ManyToManyField(
+        BlockedDomain, related_name="blocklists", help_text="List of blocked domains"
+    )
+
+
 class SearchUser(AbstractUser):
     pass
