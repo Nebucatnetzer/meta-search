@@ -71,10 +71,11 @@
               imports = [
                 inputs.services-flake.processComposeModules.default
                 {
-                  settings.processes.gunicorn = {
+                  settings.processes.django = {
                     command = ''
-                      cd "$DEVENV_ROOT"
-                      ${pythonDev}/bin/gunicorn --bind=0.0.0.0 zweili_metasearch.main:app
+                      cd "$DEVENV_ROOT/src"
+                      ${pythonDev}/bin/python manage.py migrate
+                      ${pythonDev}/bin/python manage.py runserver
                     '';
                   };
                 }
