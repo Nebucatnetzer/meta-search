@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
+import socket
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -28,10 +29,24 @@ DEBUG = os.getenv("DEBUG", str(False))
 ZWEILI_SEARCH_DB_DIR = Path(
     os.getenv("ZWEILI_SEARCH_DB_DIR", "/var/lib/zweili_search/")
 )
-ZWEILI_STATIC_ROOT = Path(os.getenv("ZWEILI_SEARCH_DB_DIR", "/var/lib/zweili_search/"))
+ZWEILI_SEARCH_DOMAIN = (os.getenv("ZWEILI_SEARCH_DOMAIN"), socket.getfqdn())
+ZWEILI_SEARCH_STATIC_ROOT = Path(
+    os.getenv("ZWEILI_SEARCH_DB_DIR", "/var/lib/zweili_search/")
+)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "localhost",
+    "localhost:8000",
+    "127.0.0.1",
+    socket.getfqdn(),
+    socket.gethostname(),
+    socket.gethostbyname(socket.gethostname()),
+]
 
+CSRF_TRUSTED_ORIGINS = [f"https://{ZWEILI_SEARCH_DOMAIN}"]
+
+if DEBUG:
+    CSRF_TRUSTED_ORIGINS.append("http://localhost:8000")
 
 # Application definition
 
@@ -123,7 +138,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "static/"
-STATIC_ROOT = ZWEILI_STATIC_ROOT.joinpath("static")
+STATIC_ROOT = ZWEILI_SEARCH_STATIC_ROOT.joinpath("static")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

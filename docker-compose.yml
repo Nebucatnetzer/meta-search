@@ -4,6 +4,8 @@ services:
   app:
     # image: ghcr.io/nebucatnetzer/meta-search/app
     image: localhost/zweili-search-app:latest
+    environment:
+      DJANGO_DEBUG: true
     volumes:
       - /var/lib/zweili_search:/var/lib/zweili_search/
 

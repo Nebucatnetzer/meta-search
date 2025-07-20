@@ -33,6 +33,34 @@
             ...
           }:
           let
+            nginxConfig = pkgs.writeText "nginx.conf" ''
+              user nobody nobody;
+              daemon off;
+              error_log /dev/stdout info;
+              pid /dev/null;
+              events {}
+              http {
+                  types_hash_max_size 4096;
+                  include ${pkgs.mailcap}/etc/nginx/mime.types;
+                  upstream app {
+                      server app:8000;
+                  }
+
+                  server {
+                      listen 80;
+                      location / {
+                          proxy_pass http://app;
+                          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                          proxy_set_header Host $host;
+                          proxy_redirect off;
+                      }
+
+                      location /static/ {
+                          alias /var/lib/zweili_search/static/;
+                      }
+                  }
+              }
+            '';
             pyproject = pkgs.lib.importTOML ./pyproject.toml;
             myPython = pkgs.python312.override {
               self = myPython;
@@ -149,7 +177,7 @@
                   Cmd = [
                     "nginx"
                     "-c"
-                    ./tooling/nginx/nginx.conf
+                    nginxConfig
                   ];
                   ExposedPorts = {
                     "80/tcp" = { };
