@@ -1,5 +1,7 @@
 import concurrent.futures
 import urllib.parse
+from dataclasses import dataclass
+from dataclasses import field
 from typing import Any
 from typing import Callable
 from typing import Dict
@@ -11,16 +13,11 @@ from typing import TypedDict
 
 import requests
 from bs4 import BeautifulSoup
-from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import AbstractUser
 from django.http import HttpRequest
 
 from search.models import BlockList
-
-
-from dataclasses import dataclass, field
-from typing import Callable, Dict, Any, List, Optional
-import requests
 
 
 @dataclass
