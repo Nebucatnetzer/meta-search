@@ -1,3 +1,5 @@
+from urllib.parse import quote_plus
+
 from search.models import Bang
 
 
@@ -20,7 +22,6 @@ def resolve_bang(user, query):
         return None, None
     bang = bang_qs.first()
     # Substitute {query} with the actual user query (escaped)
-    from urllib.parse import quote_plus
 
     search_query_escaped = quote_plus(search_query.strip())
     url = bang.url_template.replace("{query}", search_query_escaped)

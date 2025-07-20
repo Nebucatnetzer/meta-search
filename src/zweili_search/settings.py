@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-o7g7m2pl*_opz6@)(w2jb5=@44rsl(e63-lr3m$!u#s$)pym=1"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", False)
+DEBUG = os.getenv("DEBUG", str(False))
 ZWEILI_SEARCH_DB_DIR = Path(
     os.getenv("ZWEILI_SEARCH_DB_DIR", "/var/lib/zweili_search/")
 )
