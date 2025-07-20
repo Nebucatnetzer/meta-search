@@ -2,7 +2,6 @@
   inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    process-compose-flake.url = "github:Platonic-Systems/process-compose-flake";
     services-flake.url = "github:juspay/services-flake";
   };
 
@@ -15,9 +14,6 @@
     flake-parts.lib.mkFlake { inherit inputs self; } (
       top@{ ... }:
       {
-        imports = [
-          inputs.process-compose-flake.flakeModule
-        ];
         flake = {
           # Put your original flake attributes here.
         };
@@ -111,19 +107,6 @@
             ]);
           in
           {
-            process-compose."dev-services" = {
-              imports = [
-                inputs.services-flake.processComposeModules.default
-                {
-                  settings.processes.django = {
-                    command = ''
-                      cd "$DEVENV_ROOT/src"
-                      ${pythonDev.interpreter} manage.py runserver
-                    '';
-                  };
-                }
-              ];
-            };
             packages = {
               inherit pythonProd;
               ci-tools = pkgs.buildEnv {
@@ -229,9 +212,6 @@
                   pathsToLink = [ "/bin" ];
                 })
                 pythonDev
-              ];
-              inputsFrom = [
-                config.process-compose."dev-services".services.outputs.devShell
               ];
             };
           };

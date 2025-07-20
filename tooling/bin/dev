@@ -26,7 +26,7 @@ declare -A descriptions
 run() {
     _setup
     find . -name __pycache__ -o -name "*.pyc" -delete
-    nix run .#dev-services
+    python ./src/manage.py runserver
 }
 descriptions["run"]="Start the webserver."
 tasks["run"]=run
