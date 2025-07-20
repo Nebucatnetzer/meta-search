@@ -29,7 +29,7 @@ DEBUG = os.getenv("DEBUG", False)
 ZWEILI_SEARCH_DB_DIR = Path(
     os.getenv("ZWEILI_SEARCH_DB_DIR", "/var/lib/zweili_search/")
 )
-ZWEILI_SEARCH_DOMAIN = (os.getenv("ZWEILI_SEARCH_DOMAIN"), socket.getfqdn())
+ZWEILI_SEARCH_DOMAIN = os.getenv("ZWEILI_SEARCH_DOMAIN", socket.getfqdn())
 ZWEILI_SEARCH_STATIC_ROOT = Path(
     os.getenv("ZWEILI_SEARCH_DB_DIR", "/var/lib/zweili_search/")
 )
