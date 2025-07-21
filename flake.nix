@@ -98,6 +98,7 @@
               p.requests
               p.ruff
               p.types-beautifulsoup4
+              p.types-requests
             ]);
             pythonProd = myPython.withPackages (p: [
               p.beautifulsoup4
