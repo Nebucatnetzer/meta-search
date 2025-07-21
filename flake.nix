@@ -89,13 +89,14 @@
               p.gunicorn
               p.zweili-search-editable
               p.mypy
-              p.pylint
               p.pylsp-mypy
               p.pytest
               p.pytest-cov
               p.pytest-xdist
               p.python-lsp-server
+              p.python-lsp-ruff
               p.requests
+              p.ruff
               p.types-beautifulsoup4
             ]);
             pythonProd = myPython.withPackages (p: [
@@ -201,8 +202,6 @@
                 (pkgs.buildEnv {
                   name = "zweili-metasearch-devShell";
                   paths = [
-                    pkgs.black
-                    pkgs.isort
                     pkgs.nodePackages.prettier
                     pkgs.nixfmt-rfc-style
                     pkgs.shellcheck
