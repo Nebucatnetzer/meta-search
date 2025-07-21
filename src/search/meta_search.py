@@ -1,19 +1,15 @@
 import concurrent.futures
 import urllib.parse
+from collections.abc import Callable
 from dataclasses import dataclass
 from dataclasses import field
 from typing import Any
-from typing import Callable
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Sequence
-from typing import Set
 
 import requests
-from bs4 import BeautifulSoup
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AnonymousUser
 
+from search.ddg_parser import duckduckgo_html_parser
 from search.models import BlockList
 
 
@@ -21,39 +17,13 @@ from search.models import BlockList
 class Engine:
     name: str
     url: str
-    params: Callable[[str], Dict[str, Any]]
-    parser: Callable[[requests.Response], List[Any]]
+    params: Callable[[str], dict[str, Any]]
+    parser: Callable[[requests.Response], list[Any]]
     url_query: bool = False
-    headers: Dict[str, str] = field(default_factory=dict)
+    headers: dict[str, str] = field(default_factory=dict)
 
 
-def duckduckgo_html_parser(response: requests.Response) -> List[Dict[str, str]]:
-    soup = BeautifulSoup(response.text, "html.parser")
-    results = []
-    for res in soup.select("div.result"):
-        classes = res.get("class", [])
-        # Skip results with ad class
-        if (
-            "results_links" in classes
-            and "results_links_deep" in classes
-            and ("result--ad" or "result--ad--small") in classes
-        ):
-            continue
-        a_tag = res.select_one("a.result__a")
-        if not a_tag:
-            continue
-        url = a_tag.attrs.get("href")
-        title = a_tag.get_text(strip=True)
-        if url and title:
-            # Remove redirect url if present
-            if url.startswith("/l/?kh=-1&uddg="):
-                params = urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
-                url = urllib.parse.unquote(params.get("uddg", [""])[0])
-            results.append({"title": title, "url": url})
-    return results
-
-
-SEARCH_ENGINES: List[Engine] = [
+SEARCH_ENGINES: list[Engine] = [
     Engine(
         name="DuckDuckGo",
         url="https://html.duckduckgo.com/html/",
@@ -68,15 +38,15 @@ SEARCH_ENGINES: List[Engine] = [
 ]
 
 
-def fetch_results(engine: Engine, query: str) -> List[Any]:
-    headers: Dict[str, str] = engine.headers
+def fetch_results(engine: Engine, query: str) -> list[Any]:
+    headers: dict[str, str] = engine.headers
     if engine.url_query:
         base_url = engine.url.rstrip("?&")
-        query = urllib.parse.quote_plus(query)
-        url = f"{base_url}?q={query}"
+        query_enc = urllib.parse.quote_plus(query)
+        url = f"{base_url}?q={query_enc}"
         resp: requests.Response = requests.get(url, headers=headers, timeout=8)
     else:
-        params: Dict[str, Any] = engine.params(query)
+        params: dict[str, Any] = engine.params(query)
         resp: requests.Response = requests.get(
             engine.url, params=params, headers=headers, timeout=8
         )
@@ -84,14 +54,14 @@ def fetch_results(engine: Engine, query: str) -> List[Any]:
 
 
 def filter_blocked(
-    results: Sequence[Any],
-    blocked_domains: Sequence[str],
-) -> List[Any]:
+    results: list[Any],
+    blocked_domains: list[str],
+) -> list[Any]:
     if not blocked_domains:
         return list(results)
-    filtered: List[Any] = []
+    filtered: list[Any] = []
     for result in results:
-        url: Optional[str] = None
+        url: str | None = None
         if isinstance(result, dict):
             url = result.get("url") or result.get("link") or result.get("href")
         elif isinstance(result, str):
@@ -104,19 +74,19 @@ def filter_blocked(
 
 def get_blocked_domains(user: AbstractUser) -> list[str]:
     blocklists = BlockList.objects.filter(user=user)
-    blocked_domains = []
+    blocked_domains: set[str] = set()
     for blocklist in blocklists:
-        blocked_domains.extend(
+        blocked_domains.update(
             blocklist.blocked_domains.values_list("domain", flat=True)
         )
-    return list(set(blocked_domains))
+    return list(blocked_domains)
 
 
 def filter_results(
     all_results: list[Any], blocked_domains: list[str | None]
 ) -> list[Any]:
-    seen: Set[str] = set()
-    unique_results: List[Any] = []
+    seen: set[str] = set()
+    unique_results: list[Any] = []
     for r in all_results:
         if isinstance(r, dict) and "url" in r:
             r_id = (r.get("url") or "").strip().lower()
@@ -125,16 +95,18 @@ def filter_results(
         if r_id and r_id not in seen:
             seen.add(r_id)
             unique_results.append(r)
-    return filter_blocked(unique_results, blocked_domains)
+    # block domains that may be None
+    block_domains_list: list[str] = [d for d in blocked_domains if d is not None]
+    return filter_blocked(unique_results, block_domains_list)
 
 
-def parallel_search(query: str, user: AbstractUser):
+def parallel_search(query: str, user: AbstractUser | AnonymousUser) -> list[Any]:
     query = query.strip()
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [
             executor.submit(fetch_results, engine, query) for engine in SEARCH_ENGINES
         ]
-        all_results: List[Any] = []
+        all_results: list[Any] = []
         for fut in concurrent.futures.as_completed(futures):
             res = fut.result()
             all_results.extend(res if isinstance(res, list) else [])
