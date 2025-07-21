@@ -1,11 +1,18 @@
 from urllib.parse import quote_plus
 
+from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import ObjectDoesNotExist
+
 from search.models import Bang
 
 
-def resolve_bang(user, query):
-    """
-    If query starts with !<shortcut> find user's bang.
+def resolve_bang(
+    user: AbstractUser | AnonymousUser,
+    query: str,
+) -> tuple[str | None, str | None]:
+    """Process possible bang in query.
+
     Return (redirect_url or None, search_query_without_bang or None)
     """
     if not query.startswith("!"):
@@ -17,12 +24,11 @@ def resolve_bang(user, query):
         search_query = ""
     else:
         shortcut, search_query = parts
-    bang_qs = Bang.objects.filter(user=user, shortcut=shortcut)
-    if not bang_qs.exists():
-        # Return the query without the bag in order to avoid it getting eaten by other search engines
+
+    try:
+        bang = Bang.objects.get(shortcut=shortcut, user=user)
+    except ObjectDoesNotExist:
         return None, search_query
-    bang = bang_qs.first()
-    # Substitute {query} with the actual user query (escaped)
 
     search_query_escaped = quote_plus(search_query.strip())
     url = bang.url_template.replace("{query}", search_query_escaped)
