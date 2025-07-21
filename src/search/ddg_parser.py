@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 
 def _clean_ddg_url(url: str) -> str:
     """Clean a DuckDuckGo redirect URL and return the actual target URL."""
-    if url.startswith("/l/?uddg=") or url.startswith("//duckduckgo.com/l/?uddg="):
+    if url.startswith(("/l/?uddg=", "//duckduckgo.com/l/?uddg=")):
         clean_url = url
         if url.startswith("//"):
             clean_url = clean_url[2:]
