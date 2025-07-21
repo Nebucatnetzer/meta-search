@@ -31,25 +31,26 @@ SEARCH_ENGINES: list[Engine] = [
         params=lambda query: {"q": query},
         parser=duckduckgo_html_parser,
         headers={
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0"
+            "User-Agent": (
+                "Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0"
+            ),
         },
-    )
+    ),
     # Other engines can be added here as usual
 ]
 
 
 def fetch_results(engine: Engine, query: str) -> list[Any]:
     headers: dict[str, str] = engine.headers
+    resp: requests.Response
     if engine.url_query:
         base_url = engine.url.rstrip("?&")
         query_enc = urllib.parse.quote_plus(query)
         url = f"{base_url}?q={query_enc}"
-        resp: requests.Response = requests.get(url, headers=headers, timeout=8)
+        resp = requests.get(url, headers=headers, timeout=8)
     else:
         params: dict[str, Any] = engine.params(query)
-        resp: requests.Response = requests.get(
-            engine.url, params=params, headers=headers, timeout=8
-        )
+        resp = requests.get(engine.url, params=params, headers=headers, timeout=8)
     return engine.parser(resp)
 
 
@@ -72,18 +73,22 @@ def filter_blocked(
     return filtered
 
 
-def get_blocked_domains(user: AbstractUser) -> list[str]:
+def get_blocked_domains(user: AbstractUser | AnonymousUser) -> list[str | None]:
     blocklists = BlockList.objects.filter(user=user)
     blocked_domains: set[str] = set()
     for blocklist in blocklists:
         blocked_domains.update(
-            blocklist.blocked_domains.values_list("domain", flat=True)
+            blocklist.blocked_domains.values_list(
+                "domain",
+                flat=True,
+            ),
         )
     return list(blocked_domains)
 
 
 def filter_results(
-    all_results: list[Any], blocked_domains: list[str | None]
+    all_results: list[Any],
+    blocked_domains: list[str | None],
 ) -> list[Any]:
     seen: set[str] = set()
     unique_results: list[Any] = []
@@ -113,7 +118,7 @@ def parallel_search(query: str, user: AbstractUser | AnonymousUser) -> list[Any]
 
     # Remove duplicates (by URL lowercased)
     blocked_domains = get_blocked_domains(user)
-    filtered_results = filter_results(
-        all_results=all_results, blocked_domains=blocked_domains
+    return filter_results(
+        all_results=all_results,
+        blocked_domains=blocked_domains,
     )
-    return filtered_results
