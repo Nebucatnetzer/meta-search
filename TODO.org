@@ -1,5 +1,16 @@
 * TODOs
 ** NEXT Implement an env variable for ~SECRET_KEY~
+
+** NEXT Clean the Duckduckgo links
+
+They URLs should point directly to the result site.
+At the moment they look like this: ~href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fwiki.nixos.org%2Fwiki%2FPackaging%2FPython&rut=df0696b5e384603bb7999dd83a09a0a74a5aaaa0b09c1bde6092eeea82f4f653"~
+
+** NEXT Display the URL under the title
+
+At the moment I don't know where the link points to.
+I would like to see this directly.
+
 ** NEXT Get API keys for searchs
 
 - [ ] Google
@@ -34,6 +45,12 @@ I want to be able to down-/uprank certain domains.
 ** NEXT Add derviation for the static files
 
 This way I could remove the collect static step from the startup scripts.
+
+** NEXT Run it as a systemd service
+
+The container is overkill.
+
+** NEXT Can I make the image smaller?
 
 ** DONE Implement query functionality
 CLOSED: [2025-07-20 Sun 20:15]
