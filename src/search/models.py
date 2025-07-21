@@ -35,12 +35,10 @@ class BlockList(models.Model):
         on_delete=models.CASCADE,
         related_name="blocklist",
     )
-    blocked_domains: models.ManyToManyField[BlockedDomain, BlockedDomain] = (
-        models.ManyToManyField(
-            BlockedDomain,
-            related_name="blocklists",
-            help_text="List of blocked domains",
-        )
+    blocked_domains: models.ManyToManyField = models.ManyToManyField(
+        BlockedDomain,
+        related_name="blocklists",
+        help_text="List of blocked domains",
     )
 
     def __str__(self) -> str:
