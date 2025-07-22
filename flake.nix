@@ -35,6 +35,7 @@
               daemon off;
               error_log /dev/stdout info;
               pid /dev/null;
+              worker_processes auto;
               events {}
               http {
                   types_hash_max_size 4096;
@@ -137,7 +138,9 @@
                           ${pythonProd.interpreter} -m django shell < ${./tooling/bin/create_admin.py}
                           ${pythonProd.interpreter} -c "from pathlib import Path; Path('/var/lib/zweili_search/first_run').touch()"
                       fi
-                      ${pythonProd.interpreter} -m gunicorn zweili_search.wsgi:application --reload --bind 0.0.0.0:8000 --workers 3
+
+                      WORKER_PROCESSES=$(( $("${pkgs.coreutils}"/bin/nproc) * 2 + 1))
+                      ${pythonProd.interpreter} -m gunicorn zweili_search.wsgi:application --reload --bind 0.0.0.0:8000 --workers "$WORKER_PROCESSES"
                     '')
 
                   ];
