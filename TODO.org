@@ -45,12 +45,45 @@ I want to be able to down-/uprank certain domains.
 ** NEXT Add derviation for the static files
 
 This way I could remove the collect static step from the startup scripts.
+https://github.com/sephii/django.nix/tree/main
+
+#+begin_src nix
+let
+  pythonEnv = package.python.withPackages (_: [ package ]);
+in stdenv.mkDerivation {
+  pname = "${package.pname}-static";
+  version = package.version;
+  src = ./.;
+  buildPhase = ''
+    export STATIC_ROOT=$out
+    export DJANGO_SETTINGS_MODULE=mysite.config.settings.base
+    export MEDIA_ROOT=/dev/null
+    export SECRET_KEY=dummy
+    export DATABASE_URL=sqlite://:memory:
+    ${pythonEnv.interpreter} -m django collectstatic --noinput
+  '';
+  phases = [ "buildPhase" ];
+}
+#+end_src
 
 ** NEXT Run it as a systemd service
 
 The container is overkill.
 
 ** NEXT Can I make the image smaller?
+
+https://jade.fyi/blog/optimizing-nix-docker/
+
+** NEXT Remove bash from the app image
+
+I would like to try and remove bash scripts from the app-image.
+For this I need to start gunicorn directly from withing Python.
+The command would then be `python ./start-script.py` or similar.
+
+https://stackoverflow.com/questions/49890551/start-gunicorn-from-python
+https://docs.gunicorn.org/en/stable/custom.html
+
+https://stackoverflow.com/questions/46701614/how-to-do-database-migration-using-python-script
 
 ** DONE Implement query functionality
 CLOSED: [2025-07-20 Sun 20:15]
