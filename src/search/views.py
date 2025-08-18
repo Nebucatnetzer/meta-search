@@ -1,3 +1,5 @@
+import urllib.parse
+
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest
 from django.http import HttpResponse
@@ -27,5 +29,11 @@ def index(request: HttpRequest) -> HttpResponse:
             results = parallel_search(query=query_without_bang, user=request.user)
         else:
             results = parallel_search(query=query, user=request.user)
+        if not results:
+            # If for some reason the search engine doesn't return anything we
+            # redirect the search query to Duckduckgo.
+            query_enc = urllib.parse.quote_plus(query)
+            url = f"https://duckduckgo.com?q={query_enc}"
+            return redirect(url)
 
     return render(request, "search/index.html", {"results": results})
