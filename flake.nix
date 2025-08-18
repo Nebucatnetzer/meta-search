@@ -206,6 +206,7 @@
                 (pkgs.buildEnv {
                   name = "zweili-metasearch-devShell";
                   paths = [
+                    pkgs.isort
                     pkgs.nodePackages.prettier
                     pkgs.nixfmt-rfc-style
                     pkgs.shellcheck

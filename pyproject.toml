@@ -19,6 +19,9 @@ packages = [
   "src/zweili_search/",
 ]
 
+[tool.isort]
+force_single_line=true
+
 [tool.mypy]
 strict=true
 
