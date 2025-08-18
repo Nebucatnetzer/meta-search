@@ -78,6 +78,11 @@ https://docs.gunicorn.org/en/stable/custom.html
 
 https://stackoverflow.com/questions/46701614/how-to-do-database-migration-using-python-script
 
+** NEXT Add logging
+
+I noticed it is quite hard to debug the application so it would useful to have some logging.
+However it should be without revealing any user data.
+
 ** DONE Display the URL under the title
 CLOSED: [2025-08-18 Mon 15:21]
 
