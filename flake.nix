@@ -54,7 +54,7 @@
                       }
 
                       location /static/ {
-                          alias /var/lib/zweili_search/static/;
+                          alias ${staticFiles};
                       }
                   }
               }
@@ -108,6 +108,20 @@
               p.requests
               p.zweili-search
             ]);
+            staticFiles = pkgs.stdenv.mkDerivation {
+              pname = "${pyproject.project.name}-static";
+              version = pyproject.project.version;
+              src = ./.;
+              buildPhase = ''
+                export ZWEILI_SEARCH_DB_DIR="$out"
+                export DJANGO_SETTINGS_MODULE=zweili_search.settings
+                export MEDIA_ROOT=/dev/null
+                export SECRET_KEY=dummy
+                export DATABASE_URL=sqlite://:memory:
+                ${pythonProd.interpreter} -m django collectstatic --noinput
+              '';
+              phases = [ "buildPhase" ];
+            };
           in
           {
             packages = {
@@ -130,10 +144,8 @@
                     pythonProd
                     (pkgs.writeShellScriptBin "start-app" ''
                       if [ -f /var/lib/zweili_search/first_run ]; then
-                          ${pythonProd.interpreter} -m django collectstatic --noinput
                           ${pythonProd.interpreter} -m django migrate
                       else
-                          ${pythonProd.interpreter} -m django collectstatic --noinput
                           ${pythonProd.interpreter} -m django migrate
                           ${pythonProd.interpreter} -m django shell < ${./tooling/bin/create_admin.py}
                           ${pythonProd.interpreter} -c "from pathlib import Path; Path('/var/lib/zweili_search/first_run').touch()"
@@ -206,6 +218,7 @@
                 (pkgs.buildEnv {
                   name = "zweili-metasearch-devShell";
                   paths = [
+                    pkgs.black
                     pkgs.isort
                     pkgs.nodePackages.prettier
                     pkgs.nixfmt-rfc-style
