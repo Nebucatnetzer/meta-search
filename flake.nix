@@ -142,23 +142,13 @@
                   name = "image-root";
                   paths = [
                     pythonProd
-                    (pkgs.writeShellScriptBin "start-app" ''
-                      if [ -f /var/lib/zweili_search/first_run ]; then
-                          ${pythonProd.interpreter} -m django migrate
-                      else
-                          ${pythonProd.interpreter} -m django migrate
-                          ${pythonProd.interpreter} -m django shell < ${./tooling/bin/create_admin.py}
-                          ${pythonProd.interpreter} -c "from pathlib import Path; Path('/var/lib/zweili_search/first_run').touch()"
-                      fi
-
-                      WORKER_PROCESSES=$(( $("${pkgs.coreutils}"/bin/nproc) * 2 + 1))
-                      ${pythonProd.interpreter} -m gunicorn zweili_search.wsgi:application --reload --bind 0.0.0.0:8000 --workers "$WORKER_PROCESSES"
-                    '')
-
                   ];
                 };
                 config = {
-                  Cmd = [ "start-app" ];
+                  Cmd = [
+                    "${pythonProd.interpreter}"
+                    ./docker-cmd.py
+                  ];
                   Env = [
                     "DJANGO_SETTINGS_MODULE=zweili_search.settings"
                   ];
