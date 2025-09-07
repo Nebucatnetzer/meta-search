@@ -41,7 +41,7 @@
                   types_hash_max_size 4096;
                   include ${pkgs.mailcap}/etc/nginx/mime.types;
                   upstream app {
-                      server app:8000;
+                      server zweili-search-app:8000;
                   }
 
                   server {
