@@ -30,6 +30,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4.1.1
       - uses: wimpysworld/nothing-but-nix@main
+      - uses: docker/setup-qemu-action@v3
       - uses: cachix/install-nix-action@v31.3.0
         with:
           extra_nix_config: "extra-platforms = aarch64-linux"
