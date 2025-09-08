@@ -39,7 +39,8 @@ Having a site that supports this feature makes it particularly convenient, as yo
 ** Setup
 *** Getting started
 
-The easiest way is to get the ~docker-compose.yml~ from this repository and use ~podman compose up~ to run it.
+The easiest way is to get the ~docker-compose.yml~ from this repository and adjust the ~image:~ options to make sure it pulls the pre-built images from GitHub.
+Afterwards use ~podman compose up~ to run it.
 The site will then be accessible under: [[http://localhost:8000]]
 
 The default admin user is: =admin=
@@ -51,7 +52,6 @@ In order to have a production ready system you need to tweak a few configuration
 
 - ~ZWEILI_SEARCH_DOMAIN~ :: The domain under which you search site should be accessible. E.g. =foo.example.org=
 - ~ZWEILI_SEARCH_DB_DIR~ :: The path where you want to store the SQLite DB. By default it is =/var/lib/zweili_search=
-- ~ZWEILI_SEARCH_STATIC_ROOT~ :: The path where you want to store the static files. By default it is =/var/lib/zweili_search=. This might disappear in the future as I integrate the static files directly into the Nginx image.
 
 ** Usage
 
