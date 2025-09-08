@@ -47,7 +47,7 @@
                   server {
                       listen 80;
                       location / {
-                          proxy_pass http://zweili-search-app;
+                          proxy_pass http://app;
                           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
                           proxy_set_header Host $host;
                           proxy_redirect off;
