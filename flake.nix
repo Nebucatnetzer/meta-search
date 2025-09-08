@@ -54,7 +54,7 @@
                       }
 
                       location /static/ {
-                          alias ${staticFiles};
+                          alias ${staticFiles}/static/;
                       }
                   }
               }
