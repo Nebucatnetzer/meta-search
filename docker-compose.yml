@@ -1,18 +1,16 @@
 version: '3'
 
 services:
-  app:
-    image: ghcr.io/nebucatnetzer/meta-search/zweili-search-app:latest
-    # image: localhost/zweili-search-app:latest
-    #environment:
-    #  DJANGO_DEBUG: true
+  zweili-search-app:
+    # image: ghcr.io/nebucatnetzer/meta-search/zweili-search-app:latest
+    image: localhost/zweili-search-app:latest
+    environment:
+      DEBUG: true
     volumes:
       - .devenv/state/docker-volume:/var/lib/zweili_search/
 
   nginx:
-    image: ghcr.io/nebucatnetzer/meta-search/zweili-search-nginx:latest
-    # image: localhost/zweili-search-nginx:latest
+    # image: ghcr.io/nebucatnetzer/meta-search/zweili-search-nginx:latest
+    image: localhost/zweili-search-nginx:latest
     ports:
       - 8000:80
-    volumes:
-      - .devenv/state/docker-volume:/var/lib/zweili_search/static
