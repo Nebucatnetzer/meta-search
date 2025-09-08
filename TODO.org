@@ -5,15 +5,6 @@ If there aren't any results for some reason, forward the search to a users defau
 Maybe they can select one from their list of bangs.
 
 ** NEXT Implement an env variable for ~SECRET_KEY~ :bugs:
-** NEXT [#C] Get API keys for searchs :enhancements:
-
-- [ ] Google
-- [X] Bing
-  Doesn't have an API
-- [ ] Yandex
-- [X] Duckduckgo
-  Doesn't have an API
-
 ** NEXT Add models :enhancements:
 
 - [X] Bangs
@@ -35,7 +26,36 @@ Maybe they can select one from their list of bangs.
 I want to be able to down-/uprank certain domains.
 
 ** NEXT Read ENV files :features:
-** NEXT Add derviation for the static files :enhancements:
+** NEXT Run it as a systemd service :enhancements:
+
+The container is overkill.
+
+** NEXT Can I make the image smaller? :enhancements:
+
+https://jade.fyi/blog/optimizing-nix-docker/
+
+*** DONE Remove bash from the app image :enhancements:
+CLOSED: [2025-09-08 Mon 17:49]
+:LOGBOOK:
+- State "WAITING"    from "NEXT"       [2025-09-03 Wed 16:33]
+:END:
+
+I would like to try and remove bash scripts from the app-image.
+For this I need to start gunicorn directly from withing Python.
+The command would then be ~python ./start-script.py~ or similar.
+
+https://stackoverflow.com/questions/49890551/start-gunicorn-from-python
+https://docs.gunicorn.org/en/stable/custom.html
+
+https://stackoverflow.com/questions/46701614/how-to-do-database-migration-using-python-script
+
+** NEXT Add logging
+
+I noticed it is quite hard to debug the application so it would useful to have some logging.
+However it should be without revealing any user data.
+
+** DONE Add derviation for the static files :enhancements:
+CLOSED: [2025-09-04 Thu 07:38]
 
 This way I could remove the collect static step from the startup scripts.
 https://github.com/sephii/django.nix/tree/main
@@ -59,29 +79,15 @@ in stdenv.mkDerivation {
 }
 #+end_src
 
-** NEXT Run it as a systemd service :enhancements:
+** CANCELLED [#C] Get API keys for searchs :enhancements:
+CLOSED: [2025-09-03 Wed 16:34]
 
-The container is overkill.
-
-** NEXT Can I make the image smaller? :enhancements:
-
-https://jade.fyi/blog/optimizing-nix-docker/
-
-** NEXT Remove bash from the app image :enhancements:
-
-I would like to try and remove bash scripts from the app-image.
-For this I need to start gunicorn directly from withing Python.
-The command would then be ~python ./start-script.py~ or similar.
-
-https://stackoverflow.com/questions/49890551/start-gunicorn-from-python
-https://docs.gunicorn.org/en/stable/custom.html
-
-https://stackoverflow.com/questions/46701614/how-to-do-database-migration-using-python-script
-
-** NEXT Add logging
-
-I noticed it is quite hard to debug the application so it would useful to have some logging.
-However it should be without revealing any user data.
+- Google
+- [X] Bing
+  Doesn't have an API
+- Yandex
+- [X] Duckduckgo
+  Doesn't have an API
 
 ** DONE Display the URL under the title
 CLOSED: [2025-08-18 Mon 15:21]
