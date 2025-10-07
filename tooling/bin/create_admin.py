@@ -1,3 +1,5 @@
+"""Script to create default admin user for development."""
+
 from django.contrib.auth import get_user_model
 
 # see ref. below
