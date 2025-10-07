@@ -41,12 +41,12 @@ class BlockedDomain(models.Model):
 class BlockList(models.Model):
     """A user's list of blocked domains."""
 
-    user: models.OneToOneField[AbstractUser] = models.OneToOneField(
+    user: "models.OneToOneField[AbstractUser]" = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="blocklist",
     )
-    blocked_domains: models.ManyToManyField[BlockedDomain, BlockedDomain] = (
+    blocked_domains: "models.ManyToManyField[BlockedDomain, BlockedDomain]" = (
         models.ManyToManyField(
             BlockedDomain,
             related_name="blocklists",
