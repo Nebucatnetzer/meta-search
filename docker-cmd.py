@@ -63,7 +63,9 @@ def setup_admin() -> None:
     """Create default admin user if it doesn't exist."""
     user_model = get_user_model()
     if not user_model.objects.filter(username="admin").exists():
-        user = user_model.objects.create_user("admin", password="password")
+        user = user_model.objects.create_user(
+            "admin", password="password"  # noqa: S106
+        )
         user.is_superuser = True
         user.is_staff = True
         user.save()
