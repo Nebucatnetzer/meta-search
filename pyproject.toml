@@ -37,6 +37,9 @@ line-length = 88
 [tool.ruff.lint]
 fixable = ["ALL"]
 select = [ "ALL" ]
+ignore = [
+    "COM812", # trailing commas, black takes care of this
+]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = [
