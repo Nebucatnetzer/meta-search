@@ -62,6 +62,47 @@
             myPython = pkgs.python312.override {
               self = myPython;
               packageOverrides = pyfinal: pyprev: {
+                types-gevent = (
+                  let
+                    version = "25.4.0.20250915";
+                  in
+                  pyfinal.buildPythonPackage {
+                    inherit version;
+                    pname = "types-gevent";
+                    pyproject = true;
+                    dependencies = [
+                      pyfinal.types-psutil
+                      pyfinal.types-greenlet
+                    ];
+                    src = pkgs.fetchPypi {
+                      inherit version;
+                      pname = "types_gevent";
+                      hash = "sha256-loH13MxrHypgxybaPEhJSmqm8OBaY4/fsM+UThOoJlo=";
+                    };
+                    build-system = [ pyfinal.setuptools ];
+                    doCheck = false;
+                    pythonImportsCheck = [ "gevent-stubs" ];
+                  }
+                );
+                types-gunicorn = (
+                  let
+                    version = "23.0.0.20251001";
+                  in
+                  pyfinal.buildPythonPackage {
+                    inherit version;
+                    pname = "types-gunicorn";
+                    pyproject = true;
+                    dependencies = [ pyfinal.types-gevent ];
+                    src = pkgs.fetchPypi {
+                      inherit version;
+                      pname = "types_gunicorn";
+                      hash = "sha256-NG8o5K5S+nQBJiR/V1oGLW6XgcoG0iaQUP/8hopsAu0=";
+                    };
+                    build-system = [ pyfinal.setuptools ];
+                    doCheck = false;
+                    pythonImportsCheck = [ "gunicorn-stubs" ];
+                  }
+                );
                 zweili-search = pyfinal.buildPythonPackage {
                   pname = "zweili-search";
                   inherit (pyproject.project) version;
@@ -100,6 +141,7 @@
               p.requests
               p.ruff
               p.types-beautifulsoup4
+              p.types-gunicorn
               p.types-requests
             ]);
             pythonProd = myPython.withPackages (p: [
