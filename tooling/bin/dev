@@ -56,6 +56,7 @@ lint() {
         -E "$DEVENV_ROOT/src"
     echo "Running mypy"
     mypy --config-file="$DEVENV_ROOT/pyproject.toml" "$DEVENV_ROOT/src"
+    ruff check src tests
 }
 descriptions["lint"]="Run the linters against the src directory."
 tasks["lint"]=lint
