@@ -26,7 +26,7 @@ class Engine:
 SEARCH_ENGINES: list[Engine] = [
     Engine(
         name="DuckDuckGo",
-        url="https://html.duckduckgo.com/html/",
+        url="https://duckduckgo.com/",
         url_query=True,
         params=lambda query: {"q": query},
         parser=duckduckgo_html_parser,
