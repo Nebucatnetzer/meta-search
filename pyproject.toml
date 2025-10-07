@@ -51,10 +51,12 @@ disable = [
 
 [tool.ruff]
 exclude = [
-  "manage.py",
   "migrations",
 ]
-src = ["src"]
+src = [
+    "src",
+    "tests",
+]
 line-length = 88
 
 [tool.ruff.lint]
