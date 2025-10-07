@@ -1,6 +1,7 @@
 """Start script used inside the container CMD."""
 
 import multiprocessing
+from typing import Any
 
 import django
 import gunicorn.app.base
@@ -31,7 +32,7 @@ class GunicornApplication(gunicorn.app.base.BaseApplication):
             if key in self.cfg.settings and value is not None:
                 self.cfg.set(key.lower(), value)
 
-    def load(self) -> WSGIHandler:
+    def load(self) -> Any:
         """Load and return the WSGI application."""
         return self.application
 
