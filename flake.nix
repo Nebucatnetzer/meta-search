@@ -25,7 +25,6 @@
         ];
         perSystem =
           {
-            config,
             pkgs,
             ...
           }:
