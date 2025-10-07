@@ -91,6 +91,7 @@
               p.gunicorn
               p.zweili-search-editable
               p.mypy
+              p.pylint
               p.pylsp-mypy
               p.pytest
               p.pytest-cov
