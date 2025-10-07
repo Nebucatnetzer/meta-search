@@ -19,37 +19,75 @@ packages = [
   "src/zweili_search/",
 ]
 
+[tool.black]
+line-length = 88
+extend-exclude = '''
+/(
+  # Directories
+  \..*
+  | migrations
+)/
+'''
+
 [tool.isort]
-force_single_line=true
+force_single_line = true
+line_length = 88
+extend_skip_glob = ["*/.*", "*/migrations/*"]
 
 [tool.mypy]
-strict=true
+strict = true
+exclude = [
+    "migrations",
+]
+
+[tool.pylint.main]
+recursive = true
+ignore = ["migrations"]
+
+[tool.pylint."messages control"]
+disable = [
+    "duplicate-code",  # Django migrations often have similar code
+]
 
 [tool.ruff]
 exclude = [
-  "manage.py",
   "migrations",
 ]
-src = ["src"]
+src = [
+    "src",
+    "tests",
+]
 line-length = 88
 indent-width = 4
-
-[tool.ruff.format]
-# Like Black, use double quotes for strings.
-quote-style = "double"
-
-# Like Black, indent with spaces, rather than tabs.
-indent-style = "space"
-
-# Like Black, respect magic trailing commas.
-skip-magic-trailing-comma = false
-
-# Like Black, automatically detect the appropriate line ending.
-line-ending = "auto"
 
 [tool.ruff.lint]
 fixable = ["ALL"]
 select = [ "ALL" ]
 
-[tool.ruff.lint.isort]
-force-single-line = true
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+  "S101",  # Use of assert detected, we use pytest so kind of obvious
+]
+"tooling/**/*.py" = [
+  "INP001",  # Tooling scripts don't need __init__.py
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
+[tool.docformatter]
+wrap-summaries = 88
+wrap-descriptions = 88
+exclude = ["migrations"]
+>>>>>>> 16e943e (Adjust tooling)
+
+[tool.coverage.run]
+omit = [
+    "**/migrations/*",
+]
+[tool.pytest.ini_options]
+addopts = [
+    "--cov=src",
+    "--strict-markers",
+    "--strict-config",
+]
