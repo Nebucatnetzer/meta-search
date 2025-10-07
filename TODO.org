@@ -54,6 +54,10 @@ https://stackoverflow.com/questions/46701614/how-to-do-database-migration-using-
 I noticed it is quite hard to debug the application so it would useful to have some logging.
 However it should be without revealing any user data.
 
+** NEXT Add pkgs to outputs
+:PROPERTIES:
+:url:      https://github.com/hercules-ci/flake-parts/discussions/297#discussioncomment-13831807
+:END:
 ** DONE Add derviation for the static files :enhancements:
 CLOSED: [2025-09-04 Thu 07:38]
 
