@@ -42,7 +42,7 @@ exclude = [
 
 [tool.pylint.main]
 recursive = true
-ignore-patterns = ["^\\..*", "migrations"]
+ignore = ["migrations"]
 
 [tool.pylint."messages control"]
 disable = [
