@@ -78,7 +78,8 @@ def test_modern_format_multiple_results() -> None:
     </html>
     """
     results = _extract_results_from_ddg_html(html)
-    assert len(results) == 2
+    expected_count = 2
+    assert len(results) == expected_count
     assert results[0]["title"] == "First Result"
     assert results[0]["url"] == "https://example1.com"
     assert results[1]["title"] == "Second Result"
@@ -148,7 +149,8 @@ def test_old_html_format_multiple_results() -> None:
     </html>
     """
     results = _extract_results_from_ddg_html(html)
-    assert len(results) == 2
+    expected_count = 2
+    assert len(results) == expected_count
     assert results[0]["title"] == "First"
     assert results[1]["title"] == "Second"
 
