@@ -35,7 +35,7 @@ class BlockedDomain(models.Model):
 
     def __str__(self) -> str:
         """Return string representation of BlockedDomain."""
-        return self.domain
+        return str(self.domain)
 
 
 class BlockList(models.Model):
