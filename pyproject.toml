@@ -21,6 +21,7 @@ packages = [
 
 [tool.isort]
 force_single_line=true
+line_length = 88
 
 [tool.mypy]
 strict=true

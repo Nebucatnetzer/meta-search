@@ -4,7 +4,6 @@ from search.ddg_parser import _clean_ddg_url
 from search.ddg_parser import _extract_results_from_ddg_html
 from search.ddg_parser import duckduckgo_html_parser
 
-
 # Tests for _clean_ddg_url function
 
 
