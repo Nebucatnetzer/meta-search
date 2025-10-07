@@ -1,7 +1,6 @@
 """Start script used inside the container CMD."""
 
 import multiprocessing
-from typing import Any
 
 import django
 import gunicorn.app.base
@@ -42,7 +41,7 @@ def number_of_workers() -> int:
     return multiprocessing.cpu_count() + 1
 
 
-def start_gunicorn() -> Any:
+def start_gunicorn() -> None:
     """Start the Gunicorn server with Django application."""
     options: dict[str, str | int | bool] = {
         "bind": "0.0.0.0:8000",
@@ -50,7 +49,7 @@ def start_gunicorn() -> Any:
         "workers": number_of_workers(),
     }
     app = get_wsgi_application()
-    return GunicornApplication(app=app, options=options).run()
+    GunicornApplication(app=app, options=options).run()
 
 
 def run_migrations() -> None:
