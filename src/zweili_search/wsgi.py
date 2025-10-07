@@ -1,5 +1,4 @@
-"""
-WSGI config for zweili_search project.
+"""WSGI config for zweili_search project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 

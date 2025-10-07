@@ -1,5 +1,4 @@
-"""
-ASGI config for zweili_search project.
+"""ASGI config for zweili_search project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 

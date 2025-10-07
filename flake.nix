@@ -87,6 +87,7 @@
               p.beautifulsoup4
               p.django
               p.django-types
+              p.docformatter
               p.gunicorn
               p.zweili-search-editable
               p.mypy

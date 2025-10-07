@@ -53,3 +53,8 @@ select = [ "ALL" ]
 
 [tool.ruff.lint.isort]
 force-single-line = true
+
+[tool.docformatter]
+wrap-summaries = 88
+wrap-descriptions = 88
+

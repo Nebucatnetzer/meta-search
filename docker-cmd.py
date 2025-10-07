@@ -12,7 +12,7 @@ from django.core.wsgi import get_wsgi_application
 
 
 class GunicornApplication(gunicorn.app.base.BaseApplication):
-    """Custom Gunicorn application to run Django with specific config"""
+    """Custom Gunicorn application to run Django with specific config."""
 
     def __init__(self, app: WSGIHandler, options: dict[str, str | int | bool]) -> None:
         self.options = options or {}
