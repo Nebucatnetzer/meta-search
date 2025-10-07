@@ -1,3 +1,5 @@
+"""Bang handling for search shortcuts."""
+
 from urllib.parse import quote_plus
 
 from django.contrib.auth.models import AbstractUser

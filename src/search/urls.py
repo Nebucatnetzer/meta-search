@@ -1,3 +1,5 @@
+"""URL configuration for the search application."""
+
 from django.urls import include
 from django.urls import path
 

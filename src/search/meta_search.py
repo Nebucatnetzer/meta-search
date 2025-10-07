@@ -1,3 +1,5 @@
+"""Meta-search engine implementation for parallel searching."""
+
 import concurrent.futures
 import urllib.parse
 from collections.abc import Callable
@@ -15,6 +17,8 @@ from search.models import BlockList
 
 @dataclass
 class Engine:
+    """Configuration for a search engine."""
+
     name: str
     url: str
     params: Callable[[str], dict[str, Any]]
@@ -41,6 +45,7 @@ SEARCH_ENGINES: list[Engine] = [
 
 
 def fetch_results(engine: Engine, query: str) -> list[Any]:
+    """Fetch search results from a single engine."""
     headers: dict[str, str] = engine.headers
     resp: requests.Response
     if engine.url_query:
@@ -58,6 +63,7 @@ def filter_blocked(
     results: list[Any],
     blocked_domains: list[str],
 ) -> list[Any]:
+    """Filter out results from blocked domains."""
     if not blocked_domains:
         return list(results)
     filtered: list[Any] = []
@@ -74,6 +80,7 @@ def filter_blocked(
 
 
 def get_blocked_domains(user: AbstractUser | AnonymousUser) -> list[str | None]:
+    """Get list of blocked domains for a user."""
     blocklists = BlockList.objects.filter(user=user)
     blocked_domains: set[str] = set()
     for blocklist in blocklists:
@@ -90,6 +97,7 @@ def filter_results(
     all_results: list[Any],
     blocked_domains: list[str | None],
 ) -> list[Any]:
+    """Remove duplicates and filter blocked domains from results."""
     seen: set[str] = set()
     unique_results: list[Any] = []
     for r in all_results:
@@ -106,6 +114,7 @@ def filter_results(
 
 
 def parallel_search(query: str, user: AbstractUser | AnonymousUser) -> list[Any]:
+    """Execute parallel search and return filtered results."""
     query = query.strip()
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [

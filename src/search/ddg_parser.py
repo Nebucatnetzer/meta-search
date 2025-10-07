@@ -1,3 +1,5 @@
+"""DuckDuckGo HTML parser for search results."""
+
 import urllib.parse
 
 import requests

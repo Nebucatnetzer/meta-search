@@ -246,6 +246,12 @@ class FakeResponse:
     """Simple fake Response object for testing."""
 
     def __init__(self, text: str) -> None:
+        """Initialize FakeResponse with text content.
+
+        Args:
+            text: The HTML text content to simulate response.text.
+
+        """
         self.text = text
 
 

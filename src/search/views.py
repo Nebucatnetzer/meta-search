@@ -1,3 +1,5 @@
+"""Views for the search application."""
+
 import urllib.parse
 
 from django.contrib.auth.decorators import login_required
@@ -12,6 +14,7 @@ from search.meta_search import parallel_search
 
 @login_required
 def index(request: HttpRequest) -> HttpResponse:
+    """Handle search requests and display results."""
     query = request.GET.get("query", "")
     results = None
 
