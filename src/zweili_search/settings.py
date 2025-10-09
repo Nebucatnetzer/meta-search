@@ -150,3 +150,51 @@ STATIC_ROOT = ZWEILI_SEARCH_STATIC_ROOT.joinpath("static")
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Logging configuration
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "detailed": {
+            "format": "{asctime} [{levelname}] {name} - {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "[{levelname}] {name} - {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "detailed",
+        },
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": ZWEILI_SEARCH_DB_DIR.joinpath("meta_search.log"),
+            "formatter": "detailed",
+        },
+    },
+    "loggers": {
+        "search.meta_search": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "search.views": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "search.bangs": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "WARNING",
+    },
+}
