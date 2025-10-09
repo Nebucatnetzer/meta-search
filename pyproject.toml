@@ -97,3 +97,7 @@ addopts = [
     "--strict-markers",
     "--strict-config",
 ]
+markers = [
+    "live: tests that make real HTTP requests to external services",
+    "slow: tests that take a long time to run",
+]

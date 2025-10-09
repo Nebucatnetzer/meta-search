@@ -30,14 +30,18 @@ class Engine:
 SEARCH_ENGINES: list[Engine] = [
     Engine(
         name="DuckDuckGo",
-        url="https://duckduckgo.com/",
-        url_query=True,
+        url="https://duckduckgo.com/html/",
+        url_query=False,  # Use params instead of URL query
         params=lambda query: {"q": query},
         parser=duckduckgo_html_parser,
         headers={
             "User-Agent": (
                 "Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0"
             ),
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.5",
+            "Accept-Encoding": "gzip, deflate",
+            "Connection": "keep-alive",
         },
     ),
     # Other engines can be added here as usual
