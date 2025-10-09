@@ -269,3 +269,5 @@ tags
 [._]*.un~
 
 /.devenv/
+/.claude/
+/CLAUDE.md
