@@ -36,6 +36,12 @@ Having a site that supports this feature makes it particularly convenient, as yo
 - Bing
 - Yandex
 
+*** Custom default search engine
+
+Sometimes it can happen that we don't get any results.
+In that case I would like to forward the query to a customizable default search engine.
+For the moment this is hardcoded to DuckDuckGo.
+
 ** Setup
 *** Development Environment
 
