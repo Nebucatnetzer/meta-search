@@ -12,32 +12,86 @@ from playwright.sync_api import sync_playwright
 logger = logging.getLogger(__name__)
 
 
+def _clean_bing_url(url: str) -> str:
+    """Clean a Bing redirect URL and return the actual target URL."""
+    if not url:
+        return url
+
+    # Handle Bing redirect URLs like https://www.bing.com/ck/a?...&u=a1aHR0cHM...
+    if "bing.com/ck/a" in url and "&u=" in url:
+        try:
+            # Extract the URL parameter from the 'u' parameter
+            parsed = urllib.parse.urlparse(url)
+            params = urllib.parse.parse_qs(parsed.query)
+            encoded_url = params.get("u", [""])[0]
+
+            if encoded_url:
+                import base64
+
+                # The u parameter has a prefix (like 'a1') before the base64 data
+                # Remove the prefix if it exists (prefix is typically a letter + digit)
+                if len(encoded_url) > 2 and encoded_url[0].isalpha():
+                    encoded_part = encoded_url[2:]  # Remove 2-character prefix
+                else:
+                    encoded_part = encoded_url
+
+                try:
+                    # Add padding if needed
+                    padded = encoded_part + "=" * (4 - len(encoded_part) % 4)
+                    decoded_bytes = base64.urlsafe_b64decode(padded)
+                    actual_url = decoded_bytes.decode('utf-8', errors='ignore')
+
+                    # Check if it looks like a valid URL
+                    if actual_url.startswith(('http://', 'https://')):
+                        return actual_url
+                except Exception:
+                    # Try without removing prefix
+                    try:
+                        padded = encoded_url + "=" * (4 - len(encoded_url) % 4)
+                        decoded_bytes = base64.urlsafe_b64decode(padded)
+                        actual_url = decoded_bytes.decode('utf-8', errors='ignore')
+
+                        if actual_url.startswith(('http://', 'https://')):
+                            return actual_url
+                    except Exception:
+                        pass
+
+        except Exception as e:
+            logger.debug("Failed to decode Bing redirect URL %s: %s", url, e)
+
+    return url
+
+
 def _extract_results_from_bing_html(html: str) -> list[dict[str, str]]:
     """Extract results from Bing HTML and return a list of title/url dicts."""
     soup = BeautifulSoup(html, "html.parser")
     results: list[dict[str, str]] = []
 
-    # Bing search results are typically in li elements with class "b_algo"
-    for result_li in soup.select("li.b_algo"):
-        # Look for the main result link (h2 > a)
-        link = result_li.select_one("h2 a")
-        if not link:
-            continue
-
+    # Extract results from h2 a links
+    for link in soup.select("h2 a[href]"):
         href = link.get("href", "")
         title = link.get_text(strip=True)
 
         if href and title and href.startswith("http"):
-            results.append({"title": title, "url": href})
+            # Clean the URL (handles both direct and redirect URLs)
+            clean_url = _clean_bing_url(href)
+            if clean_url and clean_url.startswith("http"):
+                results.append({"title": title, "url": clean_url})
 
-    # Fallback: Look for any h2 a links in the main content
+    # Fallback: look for results in li.b_algo if h2 a didn't work
     if not results:
-        for link in soup.select("#b_results h2 a"):
+        for result_li in soup.select("li.b_algo"):
+            link = result_li.select_one("h2 a")
+            if not link:
+                continue
+
             href = link.get("href", "")
             title = link.get_text(strip=True)
 
             if href and title and href.startswith("http"):
-                results.append({"title": title, "url": href})
+                clean_url = _clean_bing_url(href)
+                if clean_url and clean_url.startswith("http"):
+                    results.append({"title": title, "url": clean_url})
 
     # Remove duplicates while preserving order
     seen_urls = set()
