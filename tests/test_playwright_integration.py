@@ -4,11 +4,32 @@ import pytest
 from unittest.mock import patch, MagicMock
 
 from search.bing_parser import bing_js_parser
+from search.ddg_parser import duckduckgo_js_parser
 from search.google_parser import google_js_parser
 
 
 class TestPlaywrightIntegration:
     """Test Playwright integration for JavaScript search engines."""
+
+    @pytest.mark.slow
+    def test_duckduckgo_js_parser_returns_results(self):
+        """Test that DuckDuckGo JS parser returns results for a simple query."""
+        query = "python programming"
+        results = duckduckgo_js_parser(query)
+
+        # Should return some results (we can't guarantee exact number due to dynamic content)
+        assert isinstance(results, list)
+
+        # If we get results, they should have the correct structure
+        if results:
+            for result in results:
+                assert isinstance(result, dict)
+                assert "title" in result
+                assert "url" in result
+                assert isinstance(result["title"], str)
+                assert isinstance(result["url"], str)
+                assert result["title"].strip()  # Title should not be empty
+                assert result["url"].startswith("http")  # URL should be valid
 
     @pytest.mark.slow
     def test_bing_js_parser_returns_results(self):
@@ -29,6 +50,11 @@ class TestPlaywrightIntegration:
                 assert isinstance(result["url"], str)
                 assert result["title"].strip()  # Title should not be empty
                 assert result["url"].startswith("http")  # URL should be valid
+
+    def test_duckduckgo_js_parser_handles_empty_query(self):
+        """Test that DuckDuckGo JS parser handles empty query gracefully."""
+        results = duckduckgo_js_parser("")
+        assert isinstance(results, list)
 
     def test_bing_js_parser_handles_empty_query(self):
         """Test that Bing JS parser handles empty query gracefully."""

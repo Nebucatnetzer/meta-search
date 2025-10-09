@@ -12,7 +12,7 @@ import requests
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import AnonymousUser
 
-from search.ddg_parser import duckduckgo_html_parser
+from search.ddg_parser import duckduckgo_js_parser
 from search.bing_parser import bing_html_parser, bing_js_parser
 from search.models import BlockList
 
@@ -39,26 +39,13 @@ class JSEngine:
     js_parser: Callable[[str], list[Any]]
 
 
-SEARCH_ENGINES: list[Engine] = [
-    Engine(
-        name="DuckDuckGo",
-        url="https://duckduckgo.com/html/",
-        url_query=False,  # Use params instead of URL query
-        params=lambda query: {"q": query},
-        parser=duckduckgo_html_parser,
-        headers={
-            "User-Agent": (
-                "Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0"
-            ),
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.5",
-            "Accept-Encoding": "gzip, deflate",
-            "Connection": "keep-alive",
-        },
-    ),
-]
+SEARCH_ENGINES: list[Engine] = []
 
 JS_SEARCH_ENGINES: list[JSEngine] = [
+    JSEngine(
+        name="DuckDuckGo (JS)",
+        js_parser=duckduckgo_js_parser,
+    ),
     JSEngine(
         name="Bing (JS)",
         js_parser=bing_js_parser,

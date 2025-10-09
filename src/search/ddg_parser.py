@@ -1,9 +1,15 @@
-"""DuckDuckGo HTML parser for search results."""
+"""DuckDuckGo HTML and JavaScript parser for search results."""
 
+import logging
+import shutil
 import urllib.parse
+from typing import Any
 
 import requests
 from bs4 import BeautifulSoup
+from playwright.sync_api import sync_playwright
+
+logger = logging.getLogger(__name__)
 
 
 def _clean_ddg_url(url: str) -> str:
@@ -69,3 +75,102 @@ def _extract_results_from_ddg_html(html: str) -> list[dict[str, str]]:
 def duckduckgo_html_parser(response: requests.Response) -> list[dict[str, str]]:
     """Parse a DuckDuckGo search response and return a list of cleaned results."""
     return _extract_results_from_ddg_html(response.text)
+
+
+def duckduckgo_js_parser(query: str, **kwargs: Any) -> list[dict[str, str]]:
+    """Parse DuckDuckGo search results using JavaScript rendering with Playwright."""
+    logger.info("Fetching DuckDuckGo results with JS rendering for query: '%s'", query)
+
+    try:
+        with sync_playwright() as p:
+            # Try to find chromium in PATH first (Nix environment)
+            chromium_path = shutil.which("chromium")
+            if chromium_path:
+                logger.debug("Using Chromium from PATH: %s", chromium_path)
+                browser = p.chromium.launch(
+                    headless=True,
+                    executable_path=chromium_path,
+                    args=[
+                        "--no-sandbox",
+                        "--disable-blink-features=AutomationControlled",
+                        "--disable-web-security",
+                        "--disable-features=VizDisplayCompositor",
+                    ],
+                )
+            else:
+                # Fallback to default playwright browser
+                logger.debug("Using default Playwright browser")
+                browser = p.chromium.launch(
+                    headless=True,
+                    args=[
+                        "--no-sandbox",
+                        "--disable-blink-features=AutomationControlled",
+                        "--disable-web-security",
+                        "--disable-features=VizDisplayCompositor",
+                    ],
+                )
+
+            context = browser.new_context(
+                user_agent="Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0",
+                viewport={"width": 1920, "height": 1080},
+                locale="en-US",
+                timezone_id="America/New_York",
+            )
+            page = context.new_page()
+
+            # Navigate to DuckDuckGo search
+            search_url = f"https://duckduckgo.com/?q={urllib.parse.quote_plus(query)}"
+            logger.debug("Navigating to: %s", search_url)
+
+            try:
+                page.goto(search_url, wait_until="domcontentloaded", timeout=15000)
+
+                # Wait a bit for JavaScript to load content
+                page.wait_for_timeout(2000)
+
+                # Try multiple selectors for DuckDuckGo results in order of preference
+                selectors_to_try = [
+                    "article[data-testid]",  # Modern DuckDuckGo result container
+                    ".result",  # Classic DuckDuckGo result
+                    "h2 a",  # Any h2 link (fallback)
+                ]
+
+                results_found = False
+                for selector in selectors_to_try:
+                    try:
+                        page.wait_for_selector(selector, timeout=5000)
+                        logger.debug("Found results using selector: %s", selector)
+                        results_found = True
+                        break
+                    except Exception:
+                        logger.debug("Selector '%s' not found, trying next", selector)
+                        continue
+
+                if not results_found:
+                    logger.warning(
+                        "No result selectors found, proceeding with content extraction"
+                    )
+
+            except Exception as nav_error:
+                logger.warning("Navigation or selector wait failed: %s", nav_error)
+                # Continue anyway, we might still get some content
+
+            # Get the HTML content
+            html_content = page.content()
+            browser.close()
+
+            logger.debug("Retrieved HTML content length: %d", len(html_content))
+            results = _extract_results_from_ddg_html(html_content)
+
+            logger.info(
+                "DuckDuckGo JS parser extracted %d results for query: '%s'",
+                len(results),
+                query,
+            )
+            return results
+
+    except Exception as e:
+        logger.error(
+            "Error fetching DuckDuckGo results with JS for query '%s': %s", query, e
+        )
+        return []
