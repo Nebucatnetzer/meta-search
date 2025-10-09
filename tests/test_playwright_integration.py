@@ -43,7 +43,7 @@ class TestPlaywrightIntegration:
         # Google might return 0 results due to CAPTCHA, but should not crash
         assert isinstance(results, list)
 
-    @patch('search.bing_parser.sync_playwright')
+    @patch("search.bing_parser.sync_playwright")
     def test_bing_js_parser_handles_playwright_error(self, mock_playwright):
         """Test that Bing JS parser handles Playwright errors gracefully."""
         # Mock Playwright to raise an exception
@@ -55,7 +55,7 @@ class TestPlaywrightIntegration:
         # Should return empty list on error, not crash
         assert results == []
 
-    @patch('search.google_parser.sync_playwright')
+    @patch("search.google_parser.sync_playwright")
     def test_google_js_parser_handles_playwright_error(self, mock_playwright):
         """Test that Google JS parser handles Playwright errors gracefully."""
         # Mock Playwright to raise an exception
@@ -67,8 +67,8 @@ class TestPlaywrightIntegration:
         # Should return empty list on error, not crash
         assert results == []
 
-    @patch('search.bing_parser.shutil.which')
-    @patch('search.bing_parser.sync_playwright')
+    @patch("search.bing_parser.shutil.which")
+    @patch("search.bing_parser.sync_playwright")
     def test_bing_js_parser_uses_chromium_from_path(self, mock_playwright, mock_which):
         """Test that Bing JS parser uses Chromium from PATH when available."""
         mock_which.return_value = "/usr/bin/chromium"
@@ -93,9 +93,11 @@ class TestPlaywrightIntegration:
         assert "executable_path" in call_args.kwargs
         assert call_args.kwargs["executable_path"] == "/usr/bin/chromium"
 
-    @patch('search.bing_parser.shutil.which')
-    @patch('search.bing_parser.sync_playwright')
-    def test_bing_js_parser_fallback_when_no_chromium(self, mock_playwright, mock_which):
+    @patch("search.bing_parser.shutil.which")
+    @patch("search.bing_parser.sync_playwright")
+    def test_bing_js_parser_fallback_when_no_chromium(
+        self, mock_playwright, mock_which
+    ):
         """Test that Bing JS parser falls back when Chromium not in PATH."""
         mock_which.return_value = None  # No chromium in PATH
 

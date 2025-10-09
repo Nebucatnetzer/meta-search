@@ -252,7 +252,6 @@ class FakeResponse:
 
         Args:
             text: The HTML text content to simulate response.text.
-
         """
         self.text = text
 

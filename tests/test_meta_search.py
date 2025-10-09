@@ -151,7 +151,10 @@ class TestFetchResults:
 
     @patch("search.meta_search.requests.get")
     def test_fetch_results_strips_trailing_question_mark(self, mock_get: Mock) -> None:
-        """Test that trailing ? is stripped from URL before adding query."""
+        """Test that trailing ?
+
+        is stripped from URL before adding query.
+        """
         mock_response = Mock(spec=requests.Response)
         mock_get.return_value = mock_response
 

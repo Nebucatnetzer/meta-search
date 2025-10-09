@@ -56,7 +56,9 @@ class TestDuckDuckGoLive:
 
             # Should find python.org in results (if we have results)
             python_urls = [r["url"] for r in results if "python.org" in r["url"]]
-            assert len(python_urls) > 0, "Should find python.org in results when results are returned"
+            assert (
+                len(python_urls) > 0
+            ), "Should find python.org in results when results are returned"
         else:
             # If no results, it might be due to rate limiting - that's okay
             print("No results returned - possibly due to rate limiting")
@@ -71,7 +73,9 @@ class TestDuckDuckGoLive:
         results = duckduckgo_html_parser(response)
 
         # Programming is a common term, should get results
-        assert len(results) >= 0, "Should return results for programming (or empty list if rate limited)"
+        assert (
+            len(results) >= 0
+        ), "Should return results for programming (or empty list if rate limited)"
 
         # If we get results, validate them
         if results:
@@ -96,7 +100,9 @@ class TestDuckDuckGoLive:
         django_urls = [r["url"] for r in results if "djangoproject.com" in r["url"]]
         assert len(django_urls) > 0, "Should find djangoproject.com in results"
 
-    def test_live_search_with_special_characters(self, ddg_headers: dict[str, str]) -> None:
+    def test_live_search_with_special_characters(
+        self, ddg_headers: dict[str, str]
+    ) -> None:
         """Test live search with special characters and spaces."""
         url = "https://html.duckduckgo.com/html/?q=python+web+development"
 
@@ -109,7 +115,9 @@ class TestDuckDuckGoLive:
 
         # Results should contain URLs (basic validation)
         for result in results:
-            assert result["url"].startswith(("http://", "https://")), "URLs should be valid HTTP(S)"
+            assert result["url"].startswith(
+                ("http://", "https://")
+            ), "URLs should be valid HTTP(S)"
 
     def test_live_search_rare_term(self, ddg_headers: dict[str, str]) -> None:
         """Test live search for a rare term that might return fewer results."""
@@ -129,7 +137,9 @@ class TestDuckDuckGoLive:
             assert isinstance(result["title"], str)
             assert isinstance(result["url"], str)
 
-    def test_live_parser_handles_current_ddg_format(self, ddg_headers: dict[str, str]) -> None:
+    def test_live_parser_handles_current_ddg_format(
+        self, ddg_headers: dict[str, str]
+    ) -> None:
         """Test that parser handles current DuckDuckGo HTML format."""
         url = "https://html.duckduckgo.com/html/?q=github"
 
@@ -149,10 +159,14 @@ class TestDuckDuckGoLive:
             assert len(result["title"]) > 0, "Titles should not be empty"
             assert result["url"].startswith("http"), "URLs should start with http"
             # Should not contain DuckDuckGo redirect artifacts
-            assert "duckduckgo.com/l/" not in result["url"], "URLs should be cleaned of redirects"
+            assert (
+                "duckduckgo.com/l/" not in result["url"]
+            ), "URLs should be cleaned of redirects"
 
     @pytest.mark.slow
-    def test_live_multiple_searches_consistency(self, ddg_headers: dict[str, str]) -> None:
+    def test_live_multiple_searches_consistency(
+        self, ddg_headers: dict[str, str]
+    ) -> None:
         """Test multiple searches to verify parser consistency."""
         search_terms = ["python", "javascript", "rust", "golang"]
         all_results = []
@@ -170,7 +184,10 @@ class TestDuckDuckGoLive:
 
         # All results should follow the same structure
         for result in all_results:
-            assert set(result.keys()) == {"title", "url"}, "All results should have same structure"
+            assert set(result.keys()) == {
+                "title",
+                "url",
+            }, "All results should have same structure"
 
     def test_live_search_with_url_encoding(self, ddg_headers: dict[str, str]) -> None:
         """Test search with URL-encoded characters."""
@@ -186,9 +203,12 @@ class TestDuckDuckGoLive:
 
         # Should find relevant programming results
         cpp_results = [
-            r for r in results
-            if any(keyword in r["title"].lower() or keyword in r["url"].lower()
-                   for keyword in ["c++", "cpp", "programming"])
+            r
+            for r in results
+            if any(
+                keyword in r["title"].lower() or keyword in r["url"].lower()
+                for keyword in ["c++", "cpp", "programming"]
+            )
         ]
         assert len(cpp_results) > 0, "Should find C++ related results"
 
@@ -206,12 +226,14 @@ def test_live_error_handling_timeout() -> None:
 def test_live_error_handling_invalid_response() -> None:
     """Test parser with potentially invalid responses."""
     # Test with a URL that might return different content
-    headers = {
-        "User-Agent": "InvalidBot/1.0"
-    }
+    headers = {"User-Agent": "InvalidBot/1.0"}
 
-    response = requests.get("https://html.duckduckgo.com/html/?q=test", headers=headers, timeout=10)
+    response = requests.get(
+        "https://html.duckduckgo.com/html/?q=test", headers=headers, timeout=10
+    )
 
     # Even with unusual user agent, parser should handle the response
     results = duckduckgo_html_parser(response)
-    assert isinstance(results, list), "Should always return a list even with unusual responses"
+    assert isinstance(
+        results, list
+    ), "Should always return a list even with unusual responses"

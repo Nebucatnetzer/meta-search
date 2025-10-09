@@ -20,10 +20,16 @@ def resolve_bang(
 
     Return (redirect_url or None, search_query_without_bang or None)
     """
-    user_identifier = getattr(user, 'username', 'anonymous') if hasattr(user, 'username') else 'anonymous'
+    user_identifier = (
+        getattr(user, "username", "anonymous")
+        if hasattr(user, "username")
+        else "anonymous"
+    )
 
     if not query.startswith("!"):
-        logger.debug("Query '%s' is not a bang query (user: %s)", query, user_identifier)
+        logger.debug(
+            "Query '%s' is not a bang query (user: %s)", query, user_identifier
+        )
         return None, None
 
     logger.debug("Processing bang query '%s' (user: %s)", query, user_identifier)
@@ -36,22 +42,35 @@ def resolve_bang(
     else:
         shortcut, search_query = parts
 
-    logger.debug("Bang shortcut: '%s', search query: '%s' (user: %s)",
-                shortcut, search_query, user_identifier)
+    logger.debug(
+        "Bang shortcut: '%s', search query: '%s' (user: %s)",
+        shortcut,
+        search_query,
+        user_identifier,
+    )
 
     try:
         bang = Bang.objects.get(shortcut=shortcut, user=user)
-        logger.info("Bang '%s' found for user %s, redirecting with query: '%s'",
-                   shortcut, user_identifier, search_query)
+        logger.info(
+            "Bang '%s' found for user %s, redirecting with query: '%s'",
+            shortcut,
+            user_identifier,
+            search_query,
+        )
     except ObjectDoesNotExist:
-        logger.info("Bang '%s' not found for user %s, will search for: '%s'",
-                   shortcut, user_identifier, search_query)
+        logger.info(
+            "Bang '%s' not found for user %s, will search for: '%s'",
+            shortcut,
+            user_identifier,
+            search_query,
+        )
         return None, search_query
 
     search_query_escaped = quote_plus(search_query.strip())
     url = bang.url_template.replace("{query}", search_query_escaped)
 
-    logger.info("Bang '%s' resolved to URL: %s (user: %s)",
-               shortcut, url, user_identifier)
+    logger.info(
+        "Bang '%s' resolved to URL: %s (user: %s)", shortcut, url, user_identifier
+    )
 
     return url, search_query

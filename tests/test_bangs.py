@@ -85,7 +85,9 @@ class TestResolveBang:
     def test_anonymous_user_no_bangs(self, bang: Bang) -> None:
         """Test that anonymous users don't have access to bangs."""
         # Create a user that doesn't have this bang
-        other_user = SearchUser.objects.create_user(username="other", password="pass123")
+        other_user = SearchUser.objects.create_user(
+            username="other", password="pass123"
+        )
         url, query = resolve_bang(user=other_user, query="!g test")
         assert url is None
         assert query == "test"

@@ -85,8 +85,8 @@ def bing_js_parser(query: str, **kwargs: Any) -> list[dict[str, str]]:
                         "--no-sandbox",
                         "--disable-blink-features=AutomationControlled",
                         "--disable-web-security",
-                        "--disable-features=VizDisplayCompositor"
-                    ]
+                        "--disable-features=VizDisplayCompositor",
+                    ],
                 )
             else:
                 # Fallback to default playwright browser
@@ -97,20 +97,22 @@ def bing_js_parser(query: str, **kwargs: Any) -> list[dict[str, str]]:
                         "--no-sandbox",
                         "--disable-blink-features=AutomationControlled",
                         "--disable-web-security",
-                        "--disable-features=VizDisplayCompositor"
-                    ]
+                        "--disable-features=VizDisplayCompositor",
+                    ],
                 )
 
             context = browser.new_context(
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 viewport={"width": 1920, "height": 1080},
                 locale="en-US",
-                timezone_id="America/New_York"
+                timezone_id="America/New_York",
             )
             page = context.new_page()
 
             # Navigate to Bing search
-            search_url = f"https://www.bing.com/search?q={urllib.parse.quote_plus(query)}"
+            search_url = (
+                f"https://www.bing.com/search?q={urllib.parse.quote_plus(query)}"
+            )
             logger.debug("Navigating to: %s", search_url)
 
             try:
@@ -121,10 +123,10 @@ def bing_js_parser(query: str, **kwargs: Any) -> list[dict[str, str]]:
 
                 # Try multiple selectors for Bing results in order of preference
                 selectors_to_try = [
-                    'li.b_algo',     # Standard Bing result container
-                    '.b_algo',       # Alternative class selector
-                    '#b_results h2', # Header links in results
-                    'h2 a',          # Any h2 link (fallback)
+                    "li.b_algo",  # Standard Bing result container
+                    ".b_algo",  # Alternative class selector
+                    "#b_results h2",  # Header links in results
+                    "h2 a",  # Any h2 link (fallback)
                 ]
 
                 results_found = False
@@ -139,7 +141,9 @@ def bing_js_parser(query: str, **kwargs: Any) -> list[dict[str, str]]:
                         continue
 
                 if not results_found:
-                    logger.warning("No result selectors found, proceeding with content extraction")
+                    logger.warning(
+                        "No result selectors found, proceeding with content extraction"
+                    )
 
             except Exception as nav_error:
                 logger.warning("Navigation or selector wait failed: %s", nav_error)
@@ -152,7 +156,11 @@ def bing_js_parser(query: str, **kwargs: Any) -> list[dict[str, str]]:
             logger.debug("Retrieved HTML content length: %d", len(html_content))
             results = _extract_results_from_bing_html(html_content)
 
-            logger.info("Bing JS parser extracted %d results for query: '%s'", len(results), query)
+            logger.info(
+                "Bing JS parser extracted %d results for query: '%s'",
+                len(results),
+                query,
+            )
             return results
 
     except Exception as e:

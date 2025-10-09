@@ -393,7 +393,7 @@ def test_parser_with_fake_response() -> None:
         </div>
     </html>
     """,
-        200
+        200,
     )
     results = google_html_parser(fake_response)  # type: ignore[arg-type]
     assert len(results) == 1
@@ -423,7 +423,7 @@ def test_parser_returns_list_of_dicts() -> None:
         </div>
     </html>
     """,
-        200
+        200,
     )
     results = google_html_parser(fake_response)  # type: ignore[arg-type]
     assert isinstance(results, list)
@@ -445,7 +445,7 @@ def test_parser_with_different_status_codes() -> None:
             </div>
         </html>
         """,
-            status_code
+            status_code,
         )
         results = google_html_parser(fake_response)  # type: ignore[arg-type]
         assert isinstance(results, list)
@@ -456,13 +456,15 @@ def test_large_result_set() -> None:
     # Generate HTML with many results
     divs = []
     for i in range(50):
-        divs.append(f"""
+        divs.append(
+            f"""
             <div data-ved="result-{i}">
                 <h3>
                     <a href="https://example{i}.com">Result {i} Title</a>
                 </h3>
             </div>
-        """)
+        """
+        )
 
     html = f"<html>{''.join(divs)}</html>"
     results = _extract_results_from_google_html(html)

@@ -71,7 +71,9 @@ def test_parser_robust_against_ddg_changes() -> None:
         # Parser should always return a list
         assert isinstance(results, list)
 
-        print(f"Parser handled DuckDuckGo response robustly, returned {len(results)} results")
+        print(
+            f"Parser handled DuckDuckGo response robustly, returned {len(results)} results"
+        )
 
     except requests.exceptions.RequestException as e:
         pytest.skip(f"Could not connect to DuckDuckGo: {e}")
