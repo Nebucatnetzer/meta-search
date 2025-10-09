@@ -39,19 +39,19 @@ def _clean_bing_url(url: str) -> str:
                     # Add padding if needed
                     padded = encoded_part + "=" * (4 - len(encoded_part) % 4)
                     decoded_bytes = base64.urlsafe_b64decode(padded)
-                    actual_url = decoded_bytes.decode('utf-8', errors='ignore')
+                    actual_url = decoded_bytes.decode("utf-8", errors="ignore")
 
                     # Check if it looks like a valid URL
-                    if actual_url.startswith(('http://', 'https://')):
+                    if actual_url.startswith(("http://", "https://")):
                         return actual_url
                 except Exception:
                     # Try without removing prefix
                     try:
                         padded = encoded_url + "=" * (4 - len(encoded_url) % 4)
                         decoded_bytes = base64.urlsafe_b64decode(padded)
-                        actual_url = decoded_bytes.decode('utf-8', errors='ignore')
+                        actual_url = decoded_bytes.decode("utf-8", errors="ignore")
 
-                        if actual_url.startswith(('http://', 'https://')):
+                        if actual_url.startswith(("http://", "https://")):
                             return actual_url
                     except Exception:
                         pass
@@ -160,12 +160,14 @@ def bing_js_parser(query: str, **kwargs: Any) -> list[dict[str, str]]:
                 viewport={"width": 1920, "height": 1080},
                 locale="en-US",
                 timezone_id="America/New_York",
+                extra_http_headers={"Accept-Language": "en-US,en;q=0.9"},
             )
             page = context.new_page()
 
-            # Navigate to Bing search
+            # Navigate to Bing search with English language settings
             search_url = (
                 f"https://www.bing.com/search?q={urllib.parse.quote_plus(query)}"
+                f"&setlang=en&mkt=en-US"
             )
             logger.debug("Navigating to: %s", search_url)
 

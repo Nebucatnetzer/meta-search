@@ -115,11 +115,15 @@ def duckduckgo_js_parser(query: str, **kwargs: Any) -> list[dict[str, str]]:
                 viewport={"width": 1920, "height": 1080},
                 locale="en-US",
                 timezone_id="America/New_York",
+                extra_http_headers={"Accept-Language": "en-US,en;q=0.9"},
             )
             page = context.new_page()
 
-            # Navigate to DuckDuckGo search
-            search_url = f"https://duckduckgo.com/?q={urllib.parse.quote_plus(query)}"
+            # Navigate to DuckDuckGo search with English language settings
+            search_url = (
+                f"https://duckduckgo.com/?q={urllib.parse.quote_plus(query)}"
+                f"&kl=us-en&lr=lang_en"
+            )
             logger.debug("Navigating to: %s", search_url)
 
             try:
