@@ -13,6 +13,8 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import AnonymousUser
 
 from search.ddg_parser import duckduckgo_html_parser
+from search.google_parser import google_html_parser, google_js_parser
+from search.bing_parser import bing_html_parser, bing_js_parser
 from search.models import BlockList
 
 logger = logging.getLogger(__name__)
@@ -28,6 +30,14 @@ class Engine:
     parser: Callable[[requests.Response], list[Any]]
     url_query: bool = False
     headers: dict[str, str] = field(default_factory=dict)
+
+
+@dataclass
+class JSEngine:
+    """Configuration for a JavaScript-enabled search engine."""
+
+    name: str
+    js_parser: Callable[[str], list[Any]]
 
 
 SEARCH_ENGINES: list[Engine] = [
@@ -47,7 +57,33 @@ SEARCH_ENGINES: list[Engine] = [
             "Connection": "keep-alive",
         },
     ),
-    # Other engines can be added here as usual
+    Engine(
+        name="Bing",
+        url="https://www.bing.com/search",
+        url_query=False,  # Use params instead of URL query
+        params=lambda query: {"q": query},
+        parser=bing_html_parser,
+        headers={
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            ),
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.5",
+            "Accept-Encoding": "gzip, deflate",
+            "Connection": "keep-alive",
+        },
+    ),
+]
+
+JS_SEARCH_ENGINES: list[JSEngine] = [
+    JSEngine(
+        name="Bing (JS)",
+        js_parser=bing_js_parser,
+    ),
+    JSEngine(
+        name="Google (JS)",
+        js_parser=google_js_parser,
+    ),
 ]
 
 
@@ -94,6 +130,27 @@ def fetch_results(engine: Engine, query: str) -> list[Any]:
         return []
 
 
+def fetch_js_results(js_engine: JSEngine, query: str) -> list[Any]:
+    """Fetch search results from a JavaScript-enabled engine."""
+    logger.info("Fetching JS results from %s for query: '%s'", js_engine.name, query)
+
+    try:
+        results = js_engine.js_parser(query)
+        logger.info("JS Engine %s returned %d results for query: '%s'",
+                   js_engine.name, len(results), query)
+
+        if len(results) == 0:
+            logger.warning("JS Engine %s returned 0 results for query: '%s'",
+                          js_engine.name, query)
+
+        return results
+
+    except Exception as e:
+        logger.error("Unexpected error fetching from JS engine %s with query '%s': %s",
+                    js_engine.name, query, e)
+        return []
+
+
 def filter_blocked(
     results: list[Any],
     blocked_domains: list[str],
@@ -116,6 +173,10 @@ def filter_blocked(
 
 def get_blocked_domains(user: AbstractUser | AnonymousUser) -> list[str | None]:
     """Get list of blocked domains for a user."""
+    # AnonymousUser doesn't have blocked domains
+    if isinstance(user, AnonymousUser):
+        return []
+
     blocklists = BlockList.objects.filter(user=user)
     blocked_domains: set[str] = set()
     for blocklist in blocklists:
@@ -153,17 +214,24 @@ def parallel_search(query: str, user: AbstractUser | AnonymousUser) -> list[Any]
     query = query.strip()
     user_identifier = getattr(user, 'username', 'anonymous') if hasattr(user, 'username') else 'anonymous'
 
+    all_engines = [engine.name for engine in SEARCH_ENGINES] + [js_engine.name for js_engine in JS_SEARCH_ENGINES]
     logger.info("Starting parallel search for query: '%s' (user: %s)", query, user_identifier)
-    logger.info("Using %d search engines: %s", len(SEARCH_ENGINES),
-               [engine.name for engine in SEARCH_ENGINES])
+    logger.info("Using %d search engines: %s", len(all_engines), all_engines)
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
+        # Submit regular engines
         futures = [
             executor.submit(fetch_results, engine, query) for engine in SEARCH_ENGINES
         ]
+        # Submit JavaScript engines
+        js_futures = [
+            executor.submit(fetch_js_results, js_engine, query) for js_engine in JS_SEARCH_ENGINES
+        ]
+
         all_results: list[Any] = []
         engine_results = {}
 
+        # Process regular engine results
         for i, fut in enumerate(concurrent.futures.as_completed(futures)):
             try:
                 res = fut.result()
@@ -173,6 +241,17 @@ def parallel_search(query: str, user: AbstractUser | AnonymousUser) -> list[Any]
             except Exception as e:
                 engine_name = SEARCH_ENGINES[i].name if i < len(SEARCH_ENGINES) else "unknown"
                 logger.error("Engine %s failed: %s", engine_name, e)
+
+        # Process JavaScript engine results
+        for i, fut in enumerate(concurrent.futures.as_completed(js_futures)):
+            try:
+                res = fut.result()
+                js_engine_name = JS_SEARCH_ENGINES[i].name
+                engine_results[js_engine_name] = len(res) if isinstance(res, list) else 0
+                all_results.extend(res if isinstance(res, list) else [])
+            except Exception as e:
+                js_engine_name = JS_SEARCH_ENGINES[i].name if i < len(JS_SEARCH_ENGINES) else "unknown"
+                logger.error("JS Engine %s failed: %s", js_engine_name, e)
 
     logger.info("Parallel search completed. Engine results: %s", engine_results)
     logger.info("Total raw results before filtering: %d", len(all_results))

@@ -131,6 +131,7 @@
               p.gunicorn
               p.zweili-search-editable
               p.mypy
+              p.playwright
               p.pylint
               p.pylsp-mypy
               p.pytest
@@ -149,6 +150,7 @@
               p.beautifulsoup4
               p.django
               p.gunicorn
+              p.playwright
               p.requests
               p.zweili-search
             ]);
@@ -247,12 +249,14 @@
                 DEBUG = "True";
                 NO_SSL = "True";
                 PC_PORT_NUM = "9999";
+                PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright.browsers}";
               };
               packages = [
                 (pkgs.buildEnv {
                   name = "zweili-metasearch-devShell";
                   paths = [
                     pkgs.black
+                    pkgs.chromium
                     pkgs.isort
                     pkgs.nodePackages.prettier
                     pkgs.nixfmt-rfc-style
