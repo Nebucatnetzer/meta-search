@@ -135,6 +135,7 @@
               p.pylsp-mypy
               p.pytest
               p.pytest-cov
+              p.pytest-django
               p.pytest-xdist
               p.python-lsp-server
               p.python-lsp-ruff

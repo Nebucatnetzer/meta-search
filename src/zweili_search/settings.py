@@ -39,6 +39,7 @@ ALLOWED_HOSTS = [
     "localhost",
     "localhost:8000",
     "127.0.0.1",
+    "testserver",  # For Django test client
     socket.getfqdn(),
     socket.gethostname(),
     socket.gethostbyname(socket.gethostname()),
