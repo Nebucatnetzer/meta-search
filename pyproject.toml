@@ -87,6 +87,9 @@ exclude = ["migrations"]
 [tool.coverage.run]
 omit = [
     "**/migrations/*",
+    "src/manage.py",
+    "src/zweili_search/asgi.py",
+    "src/zweili_search/wsgi.py",
 ]
 [tool.pytest.ini_options]
 addopts = [
