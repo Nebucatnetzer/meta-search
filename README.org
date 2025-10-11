@@ -88,6 +88,14 @@ pytest tests/test_meta_search.py
 pytest -v
 #+end_src
 
+**** Coding standards
+
+- All the Python code is formatted with ~black~ and ~docformatter~.
+- For linting the following tools are used and configured in ~pyproject.toml~:
+  - mypy
+  - pylint
+  - ruff
+
 *** Production Deployment
 
 The easiest way is to get the ~docker-compose.yml~ from this repository and adjust the ~image:~ options to make sure it pulls the pre-built images from GitHub.
