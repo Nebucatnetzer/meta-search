@@ -48,6 +48,14 @@ debug() {
 descriptions["debug"]="Run the tests and drop into the debugger on failure."
 tasks["debug"]=debug
 
+fmt() {
+    fd --extension py --exec-batch black || true
+    fd --extension py --exec docformatter --in-place || true
+    fd --extension py --exec isort || true
+}
+descriptions["fmt"]="Formatt all the Python code."
+tasks["fmt"]=fmt
+
 lint() {
     echo "Running pylint"
     pylint \
