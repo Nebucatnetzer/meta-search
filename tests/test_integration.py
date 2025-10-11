@@ -4,6 +4,7 @@ from unittest.mock import Mock
 from unittest.mock import patch
 
 import pytest
+from django.http import HttpResponseRedirect
 from django.test import Client
 from django.urls import reverse
 
@@ -115,6 +116,7 @@ class TestEndToEndSearchFlow:
         )
 
         assert response.status_code == 302
+        assert isinstance(response, HttpResponseRedirect)
         assert response.url == "https://google.com/search?q=django+testing"
 
     @patch("search.meta_search.requests.get")
@@ -277,6 +279,7 @@ class TestEdgeCases:
         )
 
         assert response.status_code == 302
+        assert isinstance(response, HttpResponseRedirect)
         assert "duckduckgo.com" in response.url
 
     @patch("search.meta_search.requests.get")
@@ -354,6 +357,7 @@ class TestEdgeCases:
         response = authenticated_client.get(reverse("index"), {"query": "!g"})
 
         assert response.status_code == 302
+        assert isinstance(response, HttpResponseRedirect)
         assert response.url == "https://google.com/search?q="
 
 

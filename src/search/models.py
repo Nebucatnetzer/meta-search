@@ -61,3 +61,8 @@ class BlockList(models.Model):
 
 class SearchUser(AbstractUser):
     """Custom user model for the search application."""
+
+    # Type hints for Django model fields and reverse relationships
+    id: int  # Django auto-generated primary key
+    bangs: "models.Manager[Bang]"
+    blocklist: "BlockList"

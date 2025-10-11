@@ -129,6 +129,7 @@ class TestResolveBang:
     def test_bang_with_unicode_query(self, user: SearchUser, bang: Bang) -> None:
         """Test bang with unicode characters."""
         url, query = resolve_bang(user=user, query="!g 日本語 test")
+        assert url is not None
         assert "{query}" not in url
         assert query == "日本語 test"
 

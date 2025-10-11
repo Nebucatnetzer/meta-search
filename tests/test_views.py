@@ -4,6 +4,7 @@ from unittest.mock import Mock
 from unittest.mock import patch
 
 import pytest
+from django.http import HttpResponseRedirect
 from django.test import Client
 from django.test import RequestFactory
 from django.urls import reverse
@@ -49,6 +50,7 @@ class TestIndexView:
         """Test that index view requires authentication."""
         response = client.get(reverse("index"))
         assert response.status_code == 302  # Redirect to login
+        assert isinstance(response, HttpResponseRedirect)
         assert "/accounts/login/" in response.url
 
     def test_index_get_without_query(self, authenticated_client: Client) -> None:
@@ -88,6 +90,7 @@ class TestIndexView:
         response = authenticated_client.get(reverse("index"), {"query": "rare query"})
 
         assert response.status_code == 302
+        assert isinstance(response, HttpResponseRedirect)
         assert response.url == "https://duckduckgo.com?q=rare+query"
 
     @patch("search.views.resolve_bang")
@@ -103,6 +106,7 @@ class TestIndexView:
         response = authenticated_client.get(reverse("index"), {"query": "!g test"})
 
         assert response.status_code == 302
+        assert isinstance(response, HttpResponseRedirect)
         assert response.url == "https://google.com/search?q=test"
         mock_resolve.assert_called_once()
 
@@ -144,6 +148,7 @@ class TestIndexView:
         response = authenticated_client.get(reverse("index"), {"query": "!g"})
 
         assert response.status_code == 302
+        assert isinstance(response, HttpResponseRedirect)
         assert response.url == "https://google.com"
 
     def test_index_empty_query_string(self, authenticated_client: Client) -> None:
@@ -168,6 +173,7 @@ class TestIndexView:
         )
 
         assert response.status_code == 302
+        assert isinstance(response, HttpResponseRedirect)
         assert "test%26foo%3Dbar" in response.url
 
     def test_index_uses_correct_template(self, authenticated_client: Client) -> None:
@@ -248,6 +254,7 @@ class TestIndexViewIntegration:
         )
 
         assert response.status_code == 302
+        assert isinstance(response, HttpResponseRedirect)
         assert response.url == "https://example.com/search?q=my+query"
 
     @patch("search.views.parallel_search")
