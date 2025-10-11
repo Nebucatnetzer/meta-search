@@ -2,7 +2,6 @@
 
 import urllib.parse
 
-import requests
 from bs4 import BeautifulSoup
 
 
@@ -66,6 +65,6 @@ def _extract_results_from_ddg_html(html: str) -> list[dict[str, str]]:
     return results
 
 
-def duckduckgo_html_parser(response: requests.Response) -> list[dict[str, str]]:
-    """Parse a DuckDuckGo search response and return a list of cleaned results."""
-    return _extract_results_from_ddg_html(response.text)
+def duckduckgo_html_parser(html: str) -> list[dict[str, str]]:
+    """Parse DuckDuckGo HTML and return a list of cleaned results."""
+    return _extract_results_from_ddg_html(html)

@@ -257,9 +257,8 @@ class FakeResponse:  # pylint: disable=too-few-public-methods
 
 
 def test_parser_with_fake_response() -> None:
-    """Test parser processes response.text correctly."""
-    fake_response = FakeResponse(
-        """
+    """Test parser processes HTML text correctly."""
+    html_content = """
     <html>
         <article data-testid="result">
             <h2>
@@ -268,8 +267,7 @@ def test_parser_with_fake_response() -> None:
         </article>
     </html>
     """
-    )
-    results = duckduckgo_html_parser(fake_response)  # type: ignore[arg-type]
+    results = duckduckgo_html_parser(html_content)
     assert len(results) == 1
     assert results[0]["title"] == "Test Result"
     assert results[0]["url"] == "https://example.com"
@@ -277,8 +275,7 @@ def test_parser_with_fake_response() -> None:
 
 def test_parser_returns_list_of_dicts() -> None:
     """Test that parser returns correct data structure."""
-    fake_response = FakeResponse(
-        """
+    html_content = """
     <html>
         <article data-testid="result">
             <h2>
@@ -287,8 +284,7 @@ def test_parser_returns_list_of_dicts() -> None:
         </article>
     </html>
     """
-    )
-    results = duckduckgo_html_parser(fake_response)  # type: ignore[arg-type]
+    results = duckduckgo_html_parser(html_content)
     assert isinstance(results, list)
     assert all(isinstance(r, dict) for r in results)
     assert all("title" in r and "url" in r for r in results)

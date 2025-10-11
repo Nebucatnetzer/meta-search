@@ -49,8 +49,11 @@ descriptions["debug"]="Run the tests and drop into the debugger on failure."
 tasks["debug"]=debug
 
 fmt() {
+    echo "black"
     fd --extension py --exec-batch black || true
+    echo "docformatter"
     fd --extension py --exec docformatter --in-place || true
+    echo "isort"
     fd --extension py --exec isort || true
 }
 descriptions["fmt"]="Formatt all the Python code."
@@ -60,10 +63,11 @@ lint() {
     echo "Running pylint"
     pylint \
         --rc-file="$DEVENV_ROOT/pyproject.toml" \
-        -j 0 \
-        -E "$DEVENV_ROOT/src"
+        "$DEVENV_ROOT/src" \
+        "$DEVENV_ROOT/tests"
     echo "Running mypy"
-    mypy --config-file="$DEVENV_ROOT/pyproject.toml" "$DEVENV_ROOT/src"
+    mypy --config-file="$DEVENV_ROOT/pyproject.toml" "$DEVENV_ROOT/src" "$DEVENV_ROOT/tests"
+    echo "Running ruff"
     ruff check src tests
 }
 descriptions["lint"]="Run the linters against the src directory."

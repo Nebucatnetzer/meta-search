@@ -131,6 +131,7 @@
               p.gunicorn
               p.zweili-search-editable
               p.mypy
+              p.playwright
               p.pylint
               p.pylint-django
               p.pylsp-mypy
@@ -150,6 +151,7 @@
               p.beautifulsoup4
               p.django
               p.gunicorn
+              p.playwright
               p.requests
               p.zweili-search
             ]);
@@ -248,6 +250,7 @@
                 DEBUG = "True";
                 NO_SSL = "True";
                 PC_PORT_NUM = "9999";
+                PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright.browsers}";
                 SECRET_KEY = "dummy";
               };
               packages = [

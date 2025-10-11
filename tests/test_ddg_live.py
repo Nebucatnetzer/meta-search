@@ -37,7 +37,7 @@ class TestDuckDuckGoLive:
         response = requests.get(url, headers=ddg_headers, timeout=10)
         response.raise_for_status()
 
-        results = duckduckgo_html_parser(response)
+        results = duckduckgo_html_parser(response.text)
 
         # DuckDuckGo may return empty results due to rate limiting,
         # but parser should always return a list
@@ -71,7 +71,7 @@ class TestDuckDuckGoLive:
         response = requests.get(url, headers=ddg_headers, timeout=10)
         response.raise_for_status()
 
-        results = duckduckgo_html_parser(response)
+        results = duckduckgo_html_parser(response.text)
 
         # Programming is a common term, should get results
         assert (
@@ -93,7 +93,7 @@ class TestDuckDuckGoLive:
         response = requests.get(url, headers=ddg_headers, timeout=10)
         response.raise_for_status()
 
-        results = duckduckgo_html_parser(response)
+        results = duckduckgo_html_parser(response.text)
 
         # Parser should always return a list, even if empty due to rate limiting
         assert isinstance(results, list), "Parser should always return a list"
@@ -118,7 +118,7 @@ class TestDuckDuckGoLive:
         response = requests.get(url, headers=ddg_headers, timeout=10)
         response.raise_for_status()
 
-        results = duckduckgo_html_parser(response)
+        results = duckduckgo_html_parser(response.text)
 
         # Parser should always return a list
         assert isinstance(results, list), "Parser should always return a list"
@@ -143,7 +143,7 @@ class TestDuckDuckGoLive:
         response = requests.get(url, headers=ddg_headers, timeout=10)
         response.raise_for_status()
 
-        results = duckduckgo_html_parser(response)
+        results = duckduckgo_html_parser(response.text)
 
         # Even rare searches should return some results or empty list
         assert isinstance(results, list), "Should always return a list"
@@ -163,7 +163,7 @@ class TestDuckDuckGoLive:
         response = requests.get(url, headers=ddg_headers, timeout=10)
         response.raise_for_status()
 
-        results = duckduckgo_html_parser(response)
+        results = duckduckgo_html_parser(response.text)
 
         # Parser should always return a list
         assert isinstance(results, list), "Parser should always return a list"
@@ -203,7 +203,7 @@ class TestDuckDuckGoLive:
             response = requests.get(url, headers=ddg_headers, timeout=10)
             response.raise_for_status()
 
-            results = duckduckgo_html_parser(response)
+            results = duckduckgo_html_parser(response.text)
 
             # Add extra delay between multiple searches
             time.sleep(2)
@@ -232,7 +232,7 @@ class TestDuckDuckGoLive:
         response = requests.get(url, headers=ddg_headers, timeout=10)
         response.raise_for_status()
 
-        results = duckduckgo_html_parser(response)
+        results = duckduckgo_html_parser(response.text)
 
         # Parser should always return a list
         assert isinstance(results, list), "Parser should always return a list"
@@ -278,7 +278,7 @@ def test_live_error_handling_invalid_response() -> None:
     )
 
     # Even with unusual user agent, parser should handle the response
-    results = duckduckgo_html_parser(response)
+    results = duckduckgo_html_parser(response.text)
     assert isinstance(
         results, list
     ), "Should always return a list even with unusual responses"

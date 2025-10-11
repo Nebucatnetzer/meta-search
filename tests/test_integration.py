@@ -1,5 +1,6 @@
 """Integration and functional tests for the meta-search application."""
 
+from unittest.mock import AsyncMock
 from unittest.mock import Mock
 from unittest.mock import patch
 
@@ -14,6 +15,16 @@ from search.models import BlockList
 from search.models import SearchUser
 
 # pylint: disable=redefined-outer-name
+
+
+def create_mock_playwright_page(html_content: str) -> AsyncMock:
+    """Create a standard mock Playwright page with the given HTML content."""
+    mock_page = AsyncMock()
+    mock_response = Mock()
+    mock_response.status = 200
+    mock_page.goto.return_value = mock_response
+    mock_page.content.return_value = html_content
+    return mock_page
 
 
 @pytest.fixture
@@ -34,16 +45,15 @@ def authenticated_client(user: SearchUser) -> Client:
 class TestEndToEndSearchFlow:
     """End-to-end tests for search functionality."""
 
-    @patch("search.meta_search.requests.get")
+    @patch("search.meta_search.get_browser_page")
     def test_complete_search_workflow(
         self,
-        mock_get: Mock,
+        mock_get_page: AsyncMock,
         authenticated_client: Client,
     ) -> None:
         """Test complete search workflow from request to response."""
         # Mock DuckDuckGo response
-        mock_response = Mock()
-        mock_response.text = """
+        html_content = """
         <html>
             <article data-testid="result">
                 <h2>
@@ -52,7 +62,7 @@ class TestEndToEndSearchFlow:
             </article>
         </html>
         """
-        mock_get.return_value = mock_response
+        mock_get_page.return_value = create_mock_playwright_page(html_content)
 
         response = authenticated_client.get(reverse("index"), {"query": "test"})
 
@@ -63,10 +73,10 @@ class TestEndToEndSearchFlow:
         assert results[0]["title"] == "Example Result"
         assert results[0]["url"] == "https://example.com"
 
-    @patch("search.meta_search.requests.get")
+    @patch("search.meta_search.get_browser_page")
     def test_search_with_blocked_domains(
         self,
-        mock_get: Mock,
+        mock_get_page: AsyncMock,
         authenticated_client: Client,
         user: SearchUser,
     ) -> None:
@@ -77,8 +87,7 @@ class TestEndToEndSearchFlow:
         blocklist.blocked_domains.add(blocked)
 
         # Mock response with both good and blocked results
-        mock_response = Mock()
-        mock_response.text = """
+        html_content = """
         <html>
             <article data-testid="result-1">
                 <h2><a href="https://example.com">Good Result</a></h2>
@@ -88,7 +97,7 @@ class TestEndToEndSearchFlow:
             </article>
         </html>
         """
-        mock_get.return_value = mock_response
+        mock_get_page.return_value = create_mock_playwright_page(html_content)
 
         response = authenticated_client.get(reverse("index"), {"query": "test"})
 
@@ -119,22 +128,21 @@ class TestEndToEndSearchFlow:
         assert isinstance(response, HttpResponseRedirect)
         assert response.url == "https://google.com/search?q=django+testing"
 
-    @patch("search.meta_search.requests.get")
+    @patch("search.meta_search.get_browser_page")
     def test_invalid_bang_falls_back_to_search(
         self,
-        mock_get: Mock,
+        mock_get_page: AsyncMock,
         authenticated_client: Client,
     ) -> None:
         """Test that invalid bang falls back to regular search."""
-        mock_response = Mock()
-        mock_response.text = """
+        html_content = """
         <html>
             <article data-testid="result">
                 <h2><a href="https://example.com">Result</a></h2>
             </article>
         </html>
         """
-        mock_get.return_value = mock_response
+        mock_get_page.return_value = create_mock_playwright_page(html_content)
 
         response = authenticated_client.get(
             reverse("index"),
@@ -145,15 +153,14 @@ class TestEndToEndSearchFlow:
         results = response.context["results"]
         assert len(results) == 1
 
-    @patch("search.meta_search.requests.get")
+    @patch("search.meta_search.get_browser_page")
     def test_duplicate_results_removed(
         self,
-        mock_get: Mock,
+        mock_get_page: AsyncMock,
         authenticated_client: Client,
     ) -> None:
         """Test that duplicate results are removed."""
-        mock_response = Mock()
-        mock_response.text = """
+        html_content = """
         <html>
             <article data-testid="result-1">
                 <h2><a href="https://example.com">Result 1</a></h2>
@@ -166,7 +173,7 @@ class TestEndToEndSearchFlow:
             </article>
         </html>
         """
-        mock_get.return_value = mock_response
+        mock_get_page.return_value = create_mock_playwright_page(html_content)
 
         response = authenticated_client.get(reverse("index"), {"query": "test"})
 
@@ -207,8 +214,8 @@ class TestUserIsolation:
         assert bang2 in user2_bangs
         assert bang1 not in user2_bangs
 
-    @patch("search.meta_search.requests.get")
-    def test_user_blocklists_are_isolated(self, mock_get: Mock) -> None:
+    @patch("search.meta_search.get_browser_page")
+    def test_user_blocklists_are_isolated(self, mock_get_page: AsyncMock) -> None:
         """Test that users have separate blocklists."""
         user1 = SearchUser.objects.create_user(username="user1", password="pass1")
         user2 = SearchUser.objects.create_user(username="user2", password="pass2")
@@ -224,8 +231,7 @@ class TestUserIsolation:
         blocklist2.blocked_domains.add(domain2)
 
         # Mock response with both domains
-        mock_response = Mock()
-        mock_response.text = """
+        html_content = """
         <html>
             <article data-testid="result-1">
                 <h2><a href="https://spam.com">Spam</a></h2>
@@ -235,7 +241,7 @@ class TestUserIsolation:
             </article>
         </html>
         """
-        mock_get.return_value = mock_response
+        mock_get_page.return_value = create_mock_playwright_page(html_content)
 
         # User1 client
         client1 = Client()
@@ -262,16 +268,15 @@ class TestUserIsolation:
 class TestEdgeCases:
     """Tests for edge cases and error handling."""
 
-    @patch("search.meta_search.requests.get")
+    @patch("search.meta_search.get_browser_page")
     def test_empty_search_results_redirect(
         self,
-        mock_get: Mock,
+        mock_get_page: AsyncMock,
         authenticated_client: Client,
     ) -> None:
         """Test redirect when search returns no results."""
-        mock_response = Mock()
-        mock_response.text = "<html></html>"
-        mock_get.return_value = mock_response
+        html_content = "<html></html>"
+        mock_get_page.return_value = create_mock_playwright_page(html_content)
 
         response = authenticated_client.get(
             reverse("index"),
@@ -282,16 +287,15 @@ class TestEdgeCases:
         assert isinstance(response, HttpResponseRedirect)
         assert "duckduckgo.com" in response.url
 
-    @patch("search.meta_search.requests.get")
+    @patch("search.meta_search.get_browser_page")
     def test_malformed_html_response(
         self,
-        mock_get: Mock,
+        mock_get_page: AsyncMock,
         authenticated_client: Client,
     ) -> None:
         """Test handling of malformed HTML response."""
-        mock_response = Mock()
-        mock_response.text = "<html><broken>"
-        mock_get.return_value = mock_response
+        html_content = "<html><broken>"
+        mock_get_page.return_value = create_mock_playwright_page(html_content)
 
         response = authenticated_client.get(reverse("index"), {"query": "test"})
 
@@ -317,22 +321,21 @@ class TestEdgeCases:
         # Should have 2 bangs with same shortcut
         assert Bang.objects.filter(shortcut="g").count() == 2
 
-    @patch("search.meta_search.requests.get")
+    @patch("search.meta_search.get_browser_page")
     def test_special_characters_in_search_query(
         self,
-        mock_get: Mock,
+        mock_get_page: AsyncMock,
         authenticated_client: Client,
     ) -> None:
         """Test search with special characters."""
-        mock_response = Mock()
-        mock_response.text = """
+        html_content = """
         <html>
             <article data-testid="result">
                 <h2><a href="https://example.com">Result</a></h2>
             </article>
         </html>
         """
-        mock_get.return_value = mock_response
+        mock_get_page.return_value = create_mock_playwright_page(html_content)
 
         response = authenticated_client.get(
             reverse("index"),
@@ -340,7 +343,7 @@ class TestEdgeCases:
         )
 
         assert response.status_code == 200
-        mock_get.assert_called()
+        mock_get_page.assert_called()
 
     def test_bang_with_no_search_terms(
         self,
@@ -365,26 +368,25 @@ class TestEdgeCases:
 class TestConcurrentSearch:  # pylint: disable=too-few-public-methods
     """Tests for concurrent search functionality."""
 
-    @patch("search.meta_search.requests.get")
+    @patch("search.meta_search.get_browser_page")
     def test_parallel_search_aggregates_results(
         self,
-        mock_get: Mock,
+        mock_get_page: AsyncMock,
         authenticated_client: Client,
     ) -> None:
         """Test that parallel search aggregates results from engines."""
-        mock_response = Mock()
-        mock_response.text = """
+        html_content = """
         <html>
             <article data-testid="result">
                 <h2><a href="https://example.com">Result</a></h2>
             </article>
         </html>
         """
-        mock_get.return_value = mock_response
+        mock_get_page.return_value = create_mock_playwright_page(html_content)
 
         response = authenticated_client.get(reverse("index"), {"query": "test"})
 
         assert response.status_code == 200
-        assert mock_get.called
+        assert mock_get_page.called
         results = response.context["results"]
         assert len(results) >= 1

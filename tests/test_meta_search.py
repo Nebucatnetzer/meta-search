@@ -1,10 +1,10 @@
 """Unit tests for meta search functionality."""
 
+from unittest.mock import AsyncMock
 from unittest.mock import Mock
 from unittest.mock import patch
 
 import pytest
-import requests
 
 from search.meta_search import Engine
 from search.meta_search import fetch_results
@@ -44,7 +44,7 @@ class TestEngine:
             name="TestEngine",
             url="https://test.com",
             params=lambda q: {"query": q},
-            parser=lambda r: [],
+            parser=lambda html: [],  # Now takes HTML string
         )
         assert engine.name == "TestEngine"
         assert engine.url == "https://test.com"
@@ -58,7 +58,7 @@ class TestEngine:
             name="TestEngine",
             url="https://test.com",
             params=lambda q: {"query": q},
-            parser=lambda r: [],
+            parser=lambda html: [],  # Now takes HTML string
             headers=headers,
         )
         assert engine.headers == headers
@@ -69,7 +69,7 @@ class TestEngine:
             name="TestEngine",
             url="https://test.com",
             params=lambda q: {"query": q},
-            parser=lambda r: [],
+            parser=lambda html: [],  # Now takes HTML string
             url_query=True,
         )
         assert engine.url_query is True
@@ -78,15 +78,19 @@ class TestEngine:
 class TestFetchResults:
     """Tests for fetch_results function."""
 
-    @patch("search.meta_search.requests.get")
-    def test_fetch_results_url_query_mode(self, mock_get: Mock) -> None:
+    @patch("search.meta_search.get_browser_page")
+    def test_fetch_results_url_query_mode(self, mock_get_page: AsyncMock) -> None:
         """Test fetch_results with url_query mode."""
-        mock_response = Mock(spec=requests.Response)
-        mock_response.text = "test"
-        mock_get.return_value = mock_response
+        # Mock the page and response
+        mock_page = AsyncMock()
+        mock_response = Mock()
+        mock_response.status = 200
+        mock_page.goto.return_value = mock_response
+        mock_page.content.return_value = "<html>test content</html>"
+        mock_get_page.return_value = mock_page
 
         def parser(
-            response: requests.Response,
+            html: str,
         ) -> list[dict[str, str]]:  # pylint: disable=unused-argument
             return [{"title": "test", "url": "https://example.com"}]
 
@@ -100,20 +104,26 @@ class TestFetchResults:
 
         results = fetch_results(engine, "test query")
 
-        mock_get.assert_called_once()
-        call_args = mock_get.call_args
+        # Verify the page was called with correct URL
+        mock_page.goto.assert_called_once()
+        call_args = mock_page.goto.call_args
         assert call_args[0][0] == "https://test.com?q=test+query"
         assert results == [{"title": "test", "url": "https://example.com"}]
+        mock_page.close.assert_called_once()
 
-    @patch("search.meta_search.requests.get")
-    def test_fetch_results_params_mode(self, mock_get: Mock) -> None:
+    @patch("search.meta_search.get_browser_page")
+    def test_fetch_results_params_mode(self, mock_get_page: AsyncMock) -> None:
         """Test fetch_results with params mode."""
-        mock_response = Mock(spec=requests.Response)
-        mock_response.text = "test"
-        mock_get.return_value = mock_response
+        # Mock the page and response
+        mock_page = AsyncMock()
+        mock_response = Mock()
+        mock_response.status = 200
+        mock_page.goto.return_value = mock_response
+        mock_page.content.return_value = "<html>test content</html>"
+        mock_get_page.return_value = mock_page
 
         def parser(
-            response: requests.Response,
+            html: str,
         ) -> list[dict[str, str]]:  # pylint: disable=unused-argument
             return [{"title": "result", "url": "https://example.com"}]
 
@@ -127,55 +137,70 @@ class TestFetchResults:
 
         results = fetch_results(engine, "test query")
 
-        mock_get.assert_called_once()
-        call_args = mock_get.call_args
-        assert call_args[0][0] == "https://test.com/search"
-        assert call_args[1]["params"] == {"query": "test query", "format": "json"}
+        # Verify the page was called with correct URL with params
+        mock_page.goto.assert_called_once()
+        call_args = mock_page.goto.call_args
+        expected_url = "https://test.com/search?query=test+query&format=json"
+        assert call_args[0][0] == expected_url
         assert results == [{"title": "result", "url": "https://example.com"}]
+        mock_page.close.assert_called_once()
 
-    @patch("search.meta_search.requests.get")
-    def test_fetch_results_with_headers(self, mock_get: Mock) -> None:
+    @patch("search.meta_search.get_browser_page")
+    def test_fetch_results_with_headers(self, mock_get_page: AsyncMock) -> None:
         """Test fetch_results passes custom headers."""
-        mock_response = Mock(spec=requests.Response)
-        mock_get.return_value = mock_response
+        # Mock the page and response
+        mock_page = AsyncMock()
+        mock_response = Mock()
+        mock_response.status = 200
+        mock_page.goto.return_value = mock_response
+        mock_page.content.return_value = "<html>test content</html>"
+        mock_get_page.return_value = mock_page
 
         headers = {"User-Agent": "CustomBot"}
         engine = Engine(
             name="TestEngine",
             url="https://test.com",
             params=lambda q: {"q": q},
-            parser=lambda r: [],
+            parser=lambda html: [],
             headers=headers,
         )
 
         fetch_results(engine, "query")
 
-        mock_get.assert_called_once()
-        call_args = mock_get.call_args
-        assert call_args[1]["headers"] == headers
+        # Verify headers were set on the page
+        mock_page.set_extra_http_headers.assert_called_once_with(headers)
+        mock_page.close.assert_called_once()
 
-    @patch("search.meta_search.requests.get")
-    def test_fetch_results_strips_trailing_question_mark(self, mock_get: Mock) -> None:
+    @patch("search.meta_search.get_browser_page")
+    def test_fetch_results_strips_trailing_question_mark(
+        self, mock_get_page: AsyncMock
+    ) -> None:
         """Test that trailing ?
 
         is stripped from URL before adding query.
         """
-        mock_response = Mock(spec=requests.Response)
-        mock_get.return_value = mock_response
+        # Mock the page and response
+        mock_page = AsyncMock()
+        mock_response = Mock()
+        mock_response.status = 200
+        mock_page.goto.return_value = mock_response
+        mock_page.content.return_value = "<html>test content</html>"
+        mock_get_page.return_value = mock_page
 
         engine = Engine(
             name="TestEngine",
             url="https://test.com/?",
             params=lambda q: {"q": q},
-            parser=lambda r: [],
+            parser=lambda html: [],
             url_query=True,
         )
 
         fetch_results(engine, "test search")
 
-        call_args = mock_get.call_args
+        call_args = mock_page.goto.call_args
         # The URL should have trailing ? stripped, then new query added
         assert call_args[0][0] == "https://test.com/?q=test+search"
+        mock_page.close.assert_called_once()
 
 
 class TestFilterBlocked:

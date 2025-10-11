@@ -1,5 +1,6 @@
 """Meta-search engine implementation for parallel searching."""
 
+import asyncio
 import concurrent.futures
 import logging
 import urllib.parse
@@ -8,10 +9,11 @@ from dataclasses import dataclass
 from dataclasses import field
 from typing import Any
 
-import requests
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import AnonymousUser
+from playwright.async_api import Page
 
+from search.browser_manager import get_browser_page
 from search.constants import DEFAULT_BROWSER_HEADERS
 from search.ddg_parser import duckduckgo_html_parser
 from search.models import BlockList
@@ -26,7 +28,7 @@ class Engine:
     name: str
     url: str
     params: Callable[[str], dict[str, Any]]
-    parser: Callable[[requests.Response], list[Any]]
+    parser: Callable[[str], list[Any]]  # Now takes HTML string instead of Response
     url_query: bool = False
     headers: dict[str, str] = field(default_factory=dict)
 
@@ -44,38 +46,53 @@ SEARCH_ENGINES: list[Engine] = [
 ]
 
 
-def fetch_results(engine: Engine, query: str) -> list[Any]:
-    """Fetch search results from a single engine."""
+async def fetch_results_async(engine: Engine, query: str) -> list[Any]:
+    """Fetch search results from a single engine using Playwright."""
     logger.info("Fetching results from %s for query: '%s'", engine.name, query)
 
-    headers: dict[str, str] = engine.headers
-    resp: requests.Response
-
+    page: Page | None = None
     try:
+        page = await get_browser_page()
+
+        # Set custom headers if specified
+        if engine.headers:
+            await page.set_extra_http_headers(engine.headers)
+
         if engine.url_query:
             base_url = engine.url.rstrip("?&")
             query_enc = urllib.parse.quote_plus(query)
             url = f"{base_url}?q={query_enc}"
             logger.debug("Making URL query request to %s: %s", engine.name, url)
-            resp = requests.get(url, headers=headers, timeout=8)
+
+            response = await page.goto(url, timeout=8000, wait_until="networkidle")
         else:
             params: dict[str, Any] = engine.params(query)
+            # Convert params to URL query string
+            query_string = urllib.parse.urlencode(params)
+            url = f"{engine.url}?{query_string}"
+
             logger.debug(
                 "Making params request to %s: %s with params: %s",
                 engine.name,
-                engine.url,
+                url,
                 params,
             )
-            resp = requests.get(engine.url, params=params, headers=headers, timeout=8)
+            response = await page.goto(url, timeout=8000, wait_until="networkidle")
+
+        if not response:
+            logger.error("No response received from %s", engine.name)
+            return []
+
+        html_content = await page.content()
 
         logger.debug(
             "Response from %s: status=%d, length=%d",
             engine.name,
-            getattr(resp, "status_code", 0),
-            len(resp.text),
+            response.status,
+            len(html_content),
         )
 
-        results = engine.parser(resp)
+        results = engine.parser(html_content)
         logger.info(
             "Engine %s returned %d results for query: '%s'",
             engine.name,
@@ -88,19 +105,43 @@ def fetch_results(engine: Engine, query: str) -> list[Any]:
                 "Engine %s returned 0 results for query: '%s' (status: %d)",
                 engine.name,
                 query,
-                getattr(resp, "status_code", 0),
+                response.status,
             )
 
-        return results  # noqa: TRY300
+        return results
 
-    except requests.exceptions.RequestException:
+    except Exception:  # noqa: BLE001
         logger.exception(
             "Request failed for engine %s with query '%s'", engine.name, query
         )
         return []
-    except (ValueError, TypeError, AttributeError):
+    finally:
+        if page:
+            await page.close()
+
+
+def fetch_results(engine: Engine, query: str) -> list[Any]:
+    """Synchronous wrapper for fetch_results_async."""
+    try:
+        # Try to use existing event loop, otherwise create a new one
+        try:
+            # Check if we're already in an async context
+            loop = asyncio.get_running_loop()
+            # If we get here, we're in an async context - this shouldn't happen
+            # in our sync wrapper, but handle it gracefully
+            import concurrent.futures
+
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(
+                    asyncio.run, fetch_results_async(engine, query)
+                )
+                return future.result()
+        except RuntimeError:
+            # No running loop, so we can safely use asyncio.run()
+            return asyncio.run(fetch_results_async(engine, query))
+    except Exception:  # noqa: BLE001
         logger.exception(
-            "Parser error for engine %s with query '%s'", engine.name, query
+            "Failed to fetch results for engine %s with query '%s'", engine.name, query
         )
         return []
 
@@ -190,12 +231,7 @@ def parallel_search(query: str, user: AbstractUser | AnonymousUser) -> list[Any]
                 engine_name = SEARCH_ENGINES[i].name
                 engine_results[engine_name] = len(res) if isinstance(res, list) else 0
                 all_results.extend(res if isinstance(res, list) else [])
-            except (
-                requests.exceptions.RequestException,
-                ValueError,
-                TypeError,
-                AttributeError,
-            ):
+            except Exception:  # noqa: BLE001
                 engine_name = (
                     SEARCH_ENGINES[i].name if i < len(SEARCH_ENGINES) else "unknown"
                 )
