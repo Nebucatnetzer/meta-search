@@ -1,6 +1,8 @@
 * TODOs
-** NEXT Fix integration tests :bugs:
-** NEXT Implement an env variable for ~SECRET_KEY~ :bugs:
+** DONE Fix integration tests :bugs:
+CLOSED: [2025-10-11 Sat 20:57]
+** DONE Implement an env variable for ~SECRET_KEY~ :bugs:
+CLOSED: [2025-10-11 Sat 21:52]
 ** NEXT Implement playwright :enhancements:
 
 We could maybe start a chromium instance at the start of the service and then use it for all searches. This way we wouldn't have to way wait for the startup and teardown of it.
