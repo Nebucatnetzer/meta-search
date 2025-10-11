@@ -12,6 +12,7 @@ import requests
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import AnonymousUser
 
+from search.constants import DEFAULT_BROWSER_HEADERS
 from search.ddg_parser import duckduckgo_html_parser
 from search.models import BlockList
 
@@ -37,15 +38,7 @@ SEARCH_ENGINES: list[Engine] = [
         url_query=False,  # Use params instead of URL query
         params=lambda query: {"q": query},
         parser=duckduckgo_html_parser,
-        headers={
-            "User-Agent": (
-                "Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0"
-            ),
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.5",
-            "Accept-Encoding": "gzip, deflate",
-            "Connection": "keep-alive",
-        },
+        headers=DEFAULT_BROWSER_HEADERS,
     ),
     # Other engines can be added here as usual
 ]
@@ -88,8 +81,8 @@ def fetch_results(engine: Engine, query: str) -> list[Any]:
         logger.error("Request failed for engine %s with query '%s': %s",
                     engine.name, query, e)
         return []
-    except Exception as e:
-        logger.error("Unexpected error fetching from engine %s with query '%s': %s",
+    except (ValueError, TypeError, AttributeError) as e:
+        logger.error("Parser error for engine %s with query '%s': %s",
                     engine.name, query, e)
         return []
 
@@ -151,7 +144,11 @@ def filter_results(
 def parallel_search(query: str, user: AbstractUser | AnonymousUser) -> list[Any]:
     """Execute parallel search and return filtered results."""
     query = query.strip()
-    user_identifier = getattr(user, 'username', 'anonymous') if hasattr(user, 'username') else 'anonymous'
+    user_identifier = (
+        getattr(user, "username", "anonymous")
+        if hasattr(user, "username")
+        else "anonymous"
+    )
 
     logger.info("Starting parallel search for query: '%s' (user: %s)", query, user_identifier)
     logger.info("Using %d search engines: %s", len(SEARCH_ENGINES),
@@ -170,7 +167,12 @@ def parallel_search(query: str, user: AbstractUser | AnonymousUser) -> list[Any]
                 engine_name = SEARCH_ENGINES[i].name
                 engine_results[engine_name] = len(res) if isinstance(res, list) else 0
                 all_results.extend(res if isinstance(res, list) else [])
-            except Exception as e:
+            except (
+                requests.exceptions.RequestException,
+                ValueError,
+                TypeError,
+                AttributeError,
+            ) as e:
                 engine_name = SEARCH_ENGINES[i].name if i < len(SEARCH_ENGINES) else "unknown"
                 logger.error("Engine %s failed: %s", engine_name, e)
 

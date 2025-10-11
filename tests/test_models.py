@@ -44,7 +44,7 @@ class TestBangModel:
         )
 
         # Creating duplicate should raise IntegrityError
-        from django.db import IntegrityError
+        from django.db import IntegrityError  # pylint: disable=import-outside-toplevel
 
         with pytest.raises(IntegrityError):
             Bang.objects.create(
@@ -115,7 +115,7 @@ class TestBlockedDomainModel:
         """Test that domain must be unique."""
         BlockedDomain.objects.create(domain="spam.com")
 
-        from django.db import IntegrityError
+        from django.db import IntegrityError  # pylint: disable=import-outside-toplevel
 
         with pytest.raises(IntegrityError):
             BlockedDomain.objects.create(domain="spam.com")
@@ -173,7 +173,7 @@ class TestBlockListModel:
     def test_blocklist_cascade_delete_on_user_delete(self) -> None:
         """Test that blocklist is deleted when user is deleted."""
         user = SearchUser.objects.create_user(username="testuser", password="pass")
-        blocklist = BlockList.objects.create(user=user)
+        BlockList.objects.create(user=user)
 
         user_id = user.id
         user.delete()
@@ -201,7 +201,7 @@ class TestBlockListModel:
         user = SearchUser.objects.create_user(username="testuser", password="pass")
         BlockList.objects.create(user=user)
 
-        from django.db import IntegrityError
+        from django.db import IntegrityError  # pylint: disable=import-outside-toplevel
 
         with pytest.raises(IntegrityError):
             BlockList.objects.create(user=user)

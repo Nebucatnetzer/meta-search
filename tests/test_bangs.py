@@ -1,13 +1,12 @@
 """Unit tests for bang handling."""
 
-from unittest.mock import Mock
-
 import pytest
-from django.contrib.auth.models import AnonymousUser
 
 from search.bangs import resolve_bang
 from search.models import Bang
 from search.models import SearchUser
+
+# pylint: disable=redefined-outer-name,unused-argument
 
 
 @pytest.fixture

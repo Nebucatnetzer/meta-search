@@ -43,11 +43,15 @@ exclude = [
 [tool.pylint.main]
 recursive = true
 ignore = ["migrations"]
+load-plugins = ["pylint_django"]
 
-[tool.pylint."messages control"]
-disable = [
-    "duplicate-code",  # Django migrations often have similar code
+[tool.pylint.typecheck]
+generated-members = [
+    "objects",  # Django model managers
 ]
+
+[tool.pylint.django]
+django-settings-module = "zweili_search.settings"
 
 [tool.ruff]
 exclude = [

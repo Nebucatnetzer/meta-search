@@ -4,7 +4,6 @@ from unittest.mock import Mock
 from unittest.mock import patch
 
 import pytest
-from django.http import HttpRequest
 from django.test import Client
 from django.test import RequestFactory
 from django.urls import reverse
@@ -12,6 +11,8 @@ from django.urls import reverse
 from search.models import Bang
 from search.models import SearchUser
 from search.views import index
+
+# pylint: disable=redefined-outer-name,unused-argument
 
 
 @pytest.fixture

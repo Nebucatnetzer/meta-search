@@ -80,7 +80,7 @@ def test_parser_robust_against_ddg_changes() -> None:
 @pytest.mark.live
 def test_real_search_engine_integration() -> None:
     """Test using the actual search engine configuration from meta_search.py."""
-    from search.meta_search import SEARCH_ENGINES, fetch_results
+    from search.meta_search import SEARCH_ENGINES, fetch_results  # pylint: disable=import-outside-toplevel
 
     # Use the actual engine configuration
     ddg_engine = SEARCH_ENGINES[0]  # DuckDuckGo is the first engine

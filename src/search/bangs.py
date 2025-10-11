@@ -20,7 +20,11 @@ def resolve_bang(
 
     Return (redirect_url or None, search_query_without_bang or None)
     """
-    user_identifier = getattr(user, 'username', 'anonymous') if hasattr(user, 'username') else 'anonymous'
+    user_identifier = (
+        getattr(user, "username", "anonymous")
+        if hasattr(user, "username")
+        else "anonymous"
+    )
 
     if not query.startswith("!"):
         logger.debug("Query '%s' is not a bang query (user: %s)", query, user_identifier)

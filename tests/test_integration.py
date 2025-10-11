@@ -12,6 +12,8 @@ from search.models import BlockedDomain
 from search.models import BlockList
 from search.models import SearchUser
 
+# pylint: disable=redefined-outer-name
+
 
 @pytest.fixture
 def user() -> SearchUser:
@@ -356,7 +358,7 @@ class TestEdgeCases:
 
 
 @pytest.mark.django_db
-class TestConcurrentSearch:
+class TestConcurrentSearch:  # pylint: disable=too-few-public-methods
     """Tests for concurrent search functionality."""
 
     @patch("search.meta_search.requests.get")

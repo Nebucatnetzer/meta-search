@@ -5,7 +5,6 @@ from unittest.mock import patch
 
 import pytest
 import requests
-from django.contrib.auth.models import AnonymousUser
 
 from search.meta_search import Engine
 from search.meta_search import fetch_results
@@ -16,6 +15,8 @@ from search.meta_search import parallel_search
 from search.models import BlockedDomain
 from search.models import BlockList
 from search.models import SearchUser
+
+# pylint: disable=redefined-outer-name,unused-argument
 
 
 @pytest.fixture
@@ -48,7 +49,7 @@ class TestEngine:
         assert engine.name == "TestEngine"
         assert engine.url == "https://test.com"
         assert engine.url_query is False
-        assert engine.headers == {}
+        assert not engine.headers
 
     def test_engine_with_custom_headers(self) -> None:
         """Test Engine with custom headers."""
@@ -84,7 +85,7 @@ class TestFetchResults:
         mock_response.text = "test"
         mock_get.return_value = mock_response
 
-        def parser(response: requests.Response) -> list[dict[str, str]]:
+        def parser(response: requests.Response) -> list[dict[str, str]]:  # pylint: disable=unused-argument
             return [{"title": "test", "url": "https://example.com"}]
 
         engine = Engine(
@@ -109,7 +110,7 @@ class TestFetchResults:
         mock_response.text = "test"
         mock_get.return_value = mock_response
 
-        def parser(response: requests.Response) -> list[dict[str, str]]:
+        def parser(response: requests.Response) -> list[dict[str, str]]:  # pylint: disable=unused-argument
             return [{"title": "result", "url": "https://example.com"}]
 
         engine = Engine(
@@ -280,19 +281,19 @@ class TestGetBlockedDomains:
     def test_get_blocked_domains_no_blocklist(self, user: SearchUser) -> None:
         """Test getting blocked domains for user without blocklist."""
         domains = get_blocked_domains(user)
-        assert domains == []
+        assert not domains
 
     def test_get_blocked_domains_anonymous_user(self, user: SearchUser) -> None:
         """Test getting blocked domains for user without any blocklists."""
         # Use a regular user without blocklists instead of AnonymousUser
         domains = get_blocked_domains(user)
-        assert domains == []
+        assert not domains
 
     def test_get_blocked_domains_empty_blocklist(self, user: SearchUser) -> None:
         """Test user with empty blocklist."""
         BlockList.objects.create(user=user)
         domains = get_blocked_domains(user)
-        assert domains == []
+        assert not domains
 
 
 class TestFilterResults:
@@ -448,7 +449,7 @@ class TestParallelSearch:
 
         results = parallel_search("test", user)
 
-        assert results == []
+        assert not results
 
     @patch("search.meta_search.fetch_results")
     def test_parallel_search_combines_results(

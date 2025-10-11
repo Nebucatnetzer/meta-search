@@ -132,6 +132,7 @@
               p.zweili-search-editable
               p.mypy
               p.pylint
+              p.pylint-django
               p.pylsp-mypy
               p.pytest
               p.pytest-cov
@@ -247,6 +248,7 @@
                 DEBUG = "True";
                 NO_SSL = "True";
                 PC_PORT_NUM = "9999";
+                SECRET_KEY = "dummy";
               };
               packages = [
                 (pkgs.buildEnv {

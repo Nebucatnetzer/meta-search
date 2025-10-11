@@ -209,7 +209,7 @@ def test_old_html_format_missing_link() -> None:
 def test_empty_html() -> None:
     """Test parsing empty HTML returns empty list."""
     results = _extract_results_from_ddg_html("<html></html>")
-    assert results == []
+    assert not results
 
 
 def test_html_with_no_results() -> None:
@@ -220,7 +220,7 @@ def test_html_with_no_results() -> None:
     </html>
     """
     results = _extract_results_from_ddg_html(html)
-    assert results == []
+    assert not results
 
 
 def test_modern_format_with_whitespace_in_title() -> None:
@@ -244,7 +244,7 @@ def test_modern_format_with_whitespace_in_title() -> None:
 # Tests for duckduckgo_html_parser function
 
 
-class FakeResponse:
+class FakeResponse:  # pylint: disable=too-few-public-methods
     """Simple fake Response object for testing."""
 
     def __init__(self, text: str) -> None:

@@ -60,9 +60,9 @@ def index(request: HttpRequest) -> HttpResponse:
                           query, user_identifier, fallback_url)
 
             return redirect(fallback_url)
-        else:
-            logger.info("Successfully found %d results for query '%s' (user: %s)",
-                       len(results), query, user_identifier)
+
+        logger.info("Successfully found %d results for query '%s' (user: %s)",
+                   len(results), query, user_identifier)
 
     else:
         logger.debug("Empty search request (user: %s, IP: %s)",
