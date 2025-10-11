@@ -1,10 +1,15 @@
 * TODOs
+** NEXT Fix integration tests :bugs:
+** NEXT Implement an env variable for ~SECRET_KEY~ :bugs:
+** NEXT Implement playwright :enhancements:
+
+We could maybe start a chromium instance at the start of the service and then use it for all searches. This way we wouldn't have to way wait for the startup and teardown of it.
+
 ** NEXT Forward to default search engine :features:
 
 If there aren't any results for some reason, forward the search to a users default search engine.
 Maybe they can select one from their list of bangs.
 
-** NEXT Implement an env variable for ~SECRET_KEY~ :bugs:
 ** NEXT Add models :enhancements:
 
 - [X] Bangs
@@ -21,11 +26,6 @@ Maybe they can select one from their list of bangs.
   }
   #+end_src
 
-** NEXT Implement weights :features:
-
-I want to be able to down-/uprank certain domains.
-
-** NEXT Read ENV files :features:
 ** NEXT Run it as a systemd service :enhancements:
 
 The container is overkill.
@@ -49,15 +49,21 @@ https://docs.gunicorn.org/en/stable/custom.html
 
 https://stackoverflow.com/questions/46701614/how-to-do-database-migration-using-python-script
 
-** NEXT Add logging
+** NEXT Implement weights :features:
 
-I noticed it is quite hard to debug the application so it would useful to have some logging.
-However it should be without revealing any user data.
+I want to be able to down-/uprank certain domains.
 
+** NEXT Read ENV files :features:
 ** NEXT Add pkgs to outputs
 :PROPERTIES:
 :url:      https://github.com/hercules-ci/flake-parts/discussions/297#discussioncomment-13831807
 :END:
+** DONE Add logging
+CLOSED: [2025-10-11 Sat 19:06]
+
+I noticed it is quite hard to debug the application so it would useful to have some logging.
+However it should be without revealing any user data.
+
 ** DONE Add derviation for the static files :enhancements:
 CLOSED: [2025-09-04 Thu 07:38]
 
