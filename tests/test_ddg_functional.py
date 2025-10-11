@@ -13,15 +13,14 @@ requiring specific search results.
 import pytest
 import requests
 
+from search.constants import DEFAULT_BROWSER_HEADERS
 from search.ddg_parser import duckduckgo_html_parser
 
 
 @pytest.mark.live
 def test_parser_handles_real_ddg_response() -> None:
     """Test that parser can handle a real DuckDuckGo HTML response without errors."""
-    headers = {
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0"
-    }
+    headers = DEFAULT_BROWSER_HEADERS
 
     # Use the HTML version that actually works
     url = "https://duckduckgo.com/html/"
@@ -54,9 +53,7 @@ def test_parser_handles_real_ddg_response() -> None:
 @pytest.mark.live
 def test_parser_robust_against_ddg_changes() -> None:
     """Test that parser gracefully handles unexpected DuckDuckGo HTML structure."""
-    headers = {
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0"
-    }
+    headers = DEFAULT_BROWSER_HEADERS
 
     url = "https://duckduckgo.com/html/"
     params = {"q": "python"}
@@ -71,7 +68,9 @@ def test_parser_robust_against_ddg_changes() -> None:
         # Parser should always return a list
         assert isinstance(results, list)
 
-        print(f"Parser handled DuckDuckGo response robustly, returned {len(results)} results")
+        print(
+            f"Parser handled DuckDuckGo response robustly, returned {len(results)} results"
+        )
 
     except requests.exceptions.RequestException as e:
         pytest.skip(f"Could not connect to DuckDuckGo: {e}")
@@ -80,7 +79,9 @@ def test_parser_robust_against_ddg_changes() -> None:
 @pytest.mark.live
 def test_real_search_engine_integration() -> None:
     """Test using the actual search engine configuration from meta_search.py."""
-    from search.meta_search import SEARCH_ENGINES, fetch_results  # pylint: disable=import-outside-toplevel
+    # pylint: disable=import-outside-toplevel
+    from search.meta_search import SEARCH_ENGINES
+    from search.meta_search import fetch_results
 
     # Use the actual engine configuration
     ddg_engine = SEARCH_ENGINES[0]  # DuckDuckGo is the first engine

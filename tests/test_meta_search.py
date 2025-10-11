@@ -85,7 +85,9 @@ class TestFetchResults:
         mock_response.text = "test"
         mock_get.return_value = mock_response
 
-        def parser(response: requests.Response) -> list[dict[str, str]]:  # pylint: disable=unused-argument
+        def parser(
+            response: requests.Response,
+        ) -> list[dict[str, str]]:  # pylint: disable=unused-argument
             return [{"title": "test", "url": "https://example.com"}]
 
         engine = Engine(
@@ -110,7 +112,9 @@ class TestFetchResults:
         mock_response.text = "test"
         mock_get.return_value = mock_response
 
-        def parser(response: requests.Response) -> list[dict[str, str]]:  # pylint: disable=unused-argument
+        def parser(
+            response: requests.Response,
+        ) -> list[dict[str, str]]:  # pylint: disable=unused-argument
             return [{"title": "result", "url": "https://example.com"}]
 
         engine = Engine(
@@ -152,7 +156,10 @@ class TestFetchResults:
 
     @patch("search.meta_search.requests.get")
     def test_fetch_results_strips_trailing_question_mark(self, mock_get: Mock) -> None:
-        """Test that trailing ? is stripped from URL before adding query."""
+        """Test that trailing ?
+
+        is stripped from URL before adding query.
+        """
         mock_response = Mock(spec=requests.Response)
         mock_get.return_value = mock_response
 

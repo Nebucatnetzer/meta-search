@@ -60,30 +60,48 @@ def fetch_results(engine: Engine, query: str) -> list[Any]:
             resp = requests.get(url, headers=headers, timeout=8)
         else:
             params: dict[str, Any] = engine.params(query)
-            logger.debug("Making params request to %s: %s with params: %s",
-                        engine.name, engine.url, params)
+            logger.debug(
+                "Making params request to %s: %s with params: %s",
+                engine.name,
+                engine.url,
+                params,
+            )
             resp = requests.get(engine.url, params=params, headers=headers, timeout=8)
 
-        logger.debug("Response from %s: status=%d, length=%d",
-                    engine.name, getattr(resp, 'status_code', 0), len(resp.text))
+        logger.debug(
+            "Response from %s: status=%d, length=%d",
+            engine.name,
+            getattr(resp, "status_code", 0),
+            len(resp.text),
+        )
 
         results = engine.parser(resp)
-        logger.info("Engine %s returned %d results for query: '%s'",
-                   engine.name, len(results), query)
+        logger.info(
+            "Engine %s returned %d results for query: '%s'",
+            engine.name,
+            len(results),
+            query,
+        )
 
         if len(results) == 0:
-            logger.warning("Engine %s returned 0 results for query: '%s' (status: %d)",
-                          engine.name, query, getattr(resp, 'status_code', 0))
+            logger.warning(
+                "Engine %s returned 0 results for query: '%s' (status: %d)",
+                engine.name,
+                query,
+                getattr(resp, "status_code", 0),
+            )
 
-        return results
+        return results  # noqa: TRY300
 
-    except requests.exceptions.RequestException as e:
-        logger.error("Request failed for engine %s with query '%s': %s",
-                    engine.name, query, e)
+    except requests.exceptions.RequestException:
+        logger.exception(
+            "Request failed for engine %s with query '%s'", engine.name, query
+        )
         return []
-    except (ValueError, TypeError, AttributeError) as e:
-        logger.error("Parser error for engine %s with query '%s': %s",
-                    engine.name, query, e)
+    except (ValueError, TypeError, AttributeError):
+        logger.exception(
+            "Parser error for engine %s with query '%s'", engine.name, query
+        )
         return []
 
 
@@ -150,9 +168,14 @@ def parallel_search(query: str, user: AbstractUser | AnonymousUser) -> list[Any]
         else "anonymous"
     )
 
-    logger.info("Starting parallel search for query: '%s' (user: %s)", query, user_identifier)
-    logger.info("Using %d search engines: %s", len(SEARCH_ENGINES),
-               [engine.name for engine in SEARCH_ENGINES])
+    logger.info(
+        "Starting parallel search for query: '%s' (user: %s)", query, user_identifier
+    )
+    logger.info(
+        "Using %d search engines: %s",
+        len(SEARCH_ENGINES),
+        [engine.name for engine in SEARCH_ENGINES],
+    )
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [
@@ -172,23 +195,31 @@ def parallel_search(query: str, user: AbstractUser | AnonymousUser) -> list[Any]
                 ValueError,
                 TypeError,
                 AttributeError,
-            ) as e:
-                engine_name = SEARCH_ENGINES[i].name if i < len(SEARCH_ENGINES) else "unknown"
-                logger.error("Engine %s failed: %s", engine_name, e)
+            ):
+                engine_name = (
+                    SEARCH_ENGINES[i].name if i < len(SEARCH_ENGINES) else "unknown"
+                )
+                logger.exception("Engine %s failed", engine_name)
 
     logger.info("Parallel search completed. Engine results: %s", engine_results)
     logger.info("Total raw results before filtering: %d", len(all_results))
 
     # Remove duplicates (by URL lowercased)
     blocked_domains = get_blocked_domains(user)
-    logger.debug("User %s has %d blocked domains", user_identifier, len(blocked_domains))
+    logger.debug(
+        "User %s has %d blocked domains", user_identifier, len(blocked_domains)
+    )
 
     filtered_results = filter_results(
         all_results=all_results,
         blocked_domains=blocked_domains,
     )
 
-    logger.info("Final results after filtering for query '%s': %d results (user: %s)",
-               query, len(filtered_results), user_identifier)
+    logger.info(
+        "Final results after filtering for query '%s': %d results (user: %s)",
+        query,
+        len(filtered_results),
+        user_identifier,
+    )
 
     return filtered_results

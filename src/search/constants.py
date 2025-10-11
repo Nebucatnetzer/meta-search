@@ -9,3 +9,7 @@ DEFAULT_BROWSER_HEADERS = {
     "Accept-Encoding": "gzip, deflate",
     "Connection": "keep-alive",
 }
+
+# HTTP Status Codes
+HTTP_200_OK = 200
+HTTP_302_FOUND = 302

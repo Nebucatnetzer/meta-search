@@ -74,10 +74,24 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = [
-  "S101",  # Use of assert detected, we use pytest so kind of obvious
+  "S101",    # Use of assert detected, we use pytest so kind of obvious
+  "S106",    # Possible hardcoded password - OK in tests
+  "S105",    # Possible hardcoded password string - OK in tests
+  "ARG001",  # Unused function argument - common in test functions
+  "ARG002",  # Unused method argument - common with pytest fixtures
+  "ARG005",  # Unused lambda argument - common in test lambdas
+  "PLR2004", # Magic value comparison - OK in tests for status codes
+  "T201",    # Print statements - OK in tests for debugging output
+  "PLC0415", # Import outside top-level - sometimes needed in tests
+  "D401",    # Docstring first line imperative mood - less strict for tests
+  "E501",    # Line too long - some test output messages are necessarily long
+  "PT018",   # Complex assertions - OK in tests for readability
 ]
 "tooling/**/*.py" = [
   "INP001",  # Tooling scripts don't need __init__.py
+]
+"src/manage.py" = [
+  "PLC0415", # Import outside top-level - standard Django pattern
 ]
 
 [tool.ruff.lint.pydocstyle]

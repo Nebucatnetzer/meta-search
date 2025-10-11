@@ -8,6 +8,7 @@ The tests validate parser behavior rather than requiring specific search results
 """
 
 import time
+
 import pytest
 import requests
 

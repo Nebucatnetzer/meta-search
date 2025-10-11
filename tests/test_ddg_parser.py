@@ -252,7 +252,6 @@ class FakeResponse:  # pylint: disable=too-few-public-methods
 
         Args:
             text: The HTML text content to simulate response.text.
-
         """
         self.text = text
 
