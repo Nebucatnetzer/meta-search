@@ -90,7 +90,7 @@ pytest -v
 
 **** Coding standards
 
-- All the Python code is formatted with ~black~ and ~docformatter~.
+- All the Python code has to be formatted with ~black~, ~docformatter~, ~isort~. The easiest way to do is, is via running ~dev fmt~.
 - For linting the following tools are used and configured in ~pyproject.toml~:
   - mypy
   - pylint
