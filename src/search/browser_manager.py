@@ -2,7 +2,6 @@
 
 import logging
 import threading
-from typing import Optional
 
 from playwright.async_api import Browser
 from playwright.async_api import BrowserContext
@@ -16,7 +15,7 @@ logger = logging.getLogger(__name__)
 class BrowserManager:
     """Singleton manager for Playwright browser instance."""
 
-    _instance: Optional["BrowserManager"] = None
+    _instance: "BrowserManager | None" = None
     _lock = threading.Lock()
 
     def __new__(cls) -> "BrowserManager":
@@ -33,9 +32,9 @@ class BrowserManager:
             return
 
         self._initialized = True
-        self._playwright: Optional[Playwright] = None
-        self._browser: Optional[Browser] = None
-        self._context: Optional[BrowserContext] = None
+        self._playwright: Playwright | None = None
+        self._browser: Browser | None = None
+        self._context: BrowserContext | None = None
         self._is_started = False
         self._lock = threading.Lock()
 
@@ -52,25 +51,19 @@ class BrowserManager:
                 logger.info("Starting Playwright browser")
                 self._playwright = await async_playwright().start()
 
-                # Use Chromium for better compatibility and performance
-                self._browser = await self._playwright.chromium.launch(
+                # Use Firefox for better stealth capabilities
+                self._browser = await self._playwright.firefox.launch(
                     headless=True,
                     args=[
                         "--no-sandbox",
-                        "--disable-dev-shm-usage",
-                        "--disable-gpu",
-                        "--disable-extensions",
-                        "--disable-background-timer-throttling",
-                        "--disable-backgrounding-occluded-windows",
-                        "--disable-renderer-backgrounding",
                     ],
                 )
 
                 # Create a persistent context with realistic browser headers
                 self._context = await self._browser.new_context(
                     user_agent=(
-                        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-                        "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                        "Mozilla/5.0 (X11; Linux x86_64; rv:140.0) "
+                        "Gecko/20100101 Firefox/140.0"
                     ),
                     viewport={"width": 1920, "height": 1080},
                     locale="en-US",
@@ -80,8 +73,8 @@ class BrowserManager:
                 self._is_started = True
                 logger.info("Playwright browser started successfully")
 
-            except Exception as e:
-                logger.exception("Failed to start Playwright browser: %s", e)
+            except Exception:
+                logger.exception("Failed to start Playwright browser")
                 await self._cleanup()
                 raise
 
@@ -114,28 +107,17 @@ class BrowserManager:
                 await self._playwright.stop()
                 self._playwright = None
 
-        except Exception:  # noqa: BLE001
+        except Exception:  # pylint: disable=broad-exception-caught
             logger.exception("Error during browser cleanup")
 
     async def get_page(self) -> Page:
         """Get a new page from the browser context."""
         if not self._is_started or not self._context:
-            raise RuntimeError("Browser manager not started. Call start() first.")
+            msg = "Browser manager not started. Call start() first."
+            raise RuntimeError(msg)
 
-        page = await self._context.new_page()
-
-        # Set common page settings
-        await page.set_extra_http_headers(
-            {
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                "Accept-Language": "en-US,en;q=0.5",
-                "Accept-Encoding": "gzip, deflate",
-                "Connection": "keep-alive",
-                "Upgrade-Insecure-Requests": "1",
-            }
-        )
-
-        return page
+        # Headers are already set in the context, no need to set them again
+        return await self._context.new_page()
 
     @property
     def is_started(self) -> bool:
@@ -153,10 +135,43 @@ async def ensure_browser_started() -> None:
         await browser_manager.start()
 
 
+# Thread-local storage for browser instances
+_thread_local = threading.local()
+
+
+async def _ensure_thread_browser() -> None:
+    """Ensure browser exists for current thread."""
+    if not hasattr(_thread_local, "playwright") or not _thread_local.playwright:
+        # Import inside function to avoid circular imports
+        playwright_module = __import__(
+            "playwright.async_api", fromlist=["async_playwright"]
+        )
+        async_playwright_func = playwright_module.async_playwright
+
+        _thread_local.playwright = await async_playwright_func().start()
+        _thread_local.browser = await _thread_local.playwright.firefox.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+            ],
+        )
+
+        _thread_local.context = await _thread_local.browser.new_context(
+            user_agent=(
+                "Mozilla/5.0 (X11; Linux x86_64; rv:140.0) "
+                "Gecko/20100101 Firefox/140.0"
+            ),
+            viewport={"width": 1920, "height": 1080},
+            locale="en-US",
+            timezone_id="UTC",
+        )
+
+
 async def get_browser_page() -> Page:
-    """Get a new browser page, starting the browser if needed."""
-    await ensure_browser_started()
-    return await browser_manager.get_page()
+    """Get a new browser page from thread-local browser."""
+    await _ensure_thread_browser()
+    page: Page = await _thread_local.context.new_page()
+    return page
 
 
 async def stop_browser() -> None:

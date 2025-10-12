@@ -101,6 +101,6 @@ def test_real_search_engine_integration() -> None:
 
         print(f"Real engine integration test: {len(results)} results")
 
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-exception-caught  # noqa: BLE001
         # Since we're using Playwright now, we might get various types of exceptions
         pytest.skip(f"Could not connect to search engine: {e}")

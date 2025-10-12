@@ -7,16 +7,19 @@ import urllib.parse
 from collections.abc import Callable
 from dataclasses import dataclass
 from dataclasses import field
+from typing import TYPE_CHECKING
 from typing import Any
 
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import AnonymousUser
-from playwright.async_api import Page
 
 from search.browser_manager import get_browser_page
 from search.constants import DEFAULT_BROWSER_HEADERS
 from search.ddg_parser import duckduckgo_html_parser
 from search.models import BlockList
+
+if TYPE_CHECKING:
+    from playwright.async_api import Page
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +39,7 @@ class Engine:
 SEARCH_ENGINES: list[Engine] = [
     Engine(
         name="DuckDuckGo",
-        url="https://duckduckgo.com/html/",
+        url="https://html.duckduckgo.com/html",  # Correct URL without trailing slash
         url_query=False,  # Use params instead of URL query
         params=lambda query: {"q": query},
         parser=duckduckgo_html_parser,
@@ -108,38 +111,46 @@ async def fetch_results_async(engine: Engine, query: str) -> list[Any]:
                 response.status,
             )
 
-        return results
+        return results  # noqa: TRY300
 
-    except Exception:  # noqa: BLE001
+    except Exception:  # pylint: disable=broad-exception-caught
         logger.exception(
             "Request failed for engine %s with query '%s'", engine.name, query
         )
         return []
     finally:
         if page:
-            await page.close()
+            try:
+                # Only close the page, not the browser - browser is reused
+                await page.close()
+            except Exception:  # pylint: disable=broad-exception-caught
+                logger.exception("Error closing page")
 
 
 def fetch_results(engine: Engine, query: str) -> list[Any]:
-    """Synchronous wrapper for fetch_results_async."""
-    try:
-        # Try to use existing event loop, otherwise create a new one
-        try:
-            # Check if we're already in an async context
-            loop = asyncio.get_running_loop()
-            # If we get here, we're in an async context - this shouldn't happen
-            # in our sync wrapper, but handle it gracefully
-            import concurrent.futures
+    """Wrap fetch_results_async for synchronous execution."""
 
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                future = executor.submit(
-                    asyncio.run, fetch_results_async(engine, query)
-                )
-                return future.result()
-        except RuntimeError:
-            # No running loop, so we can safely use asyncio.run()
-            return asyncio.run(fetch_results_async(engine, query))
-    except Exception:  # noqa: BLE001
+    def run_async_in_thread() -> list[Any]:
+        """Run async code in a dedicated thread with optimized browser management."""
+        # Create event loop for this thread
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            return loop.run_until_complete(fetch_results_async(engine, query))
+        finally:
+            loop.close()
+
+    try:
+        # Use ThreadPoolExecutor to run async code in a separate thread
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(run_async_in_thread)
+            return future.result(timeout=30)
+    except concurrent.futures.TimeoutError:
+        logger.exception(
+            "Timeout fetching results for engine %s with query '%s'", engine.name, query
+        )
+        return []
+    except Exception:  # pylint: disable=broad-exception-caught
         logger.exception(
             "Failed to fetch results for engine %s with query '%s'", engine.name, query
         )
@@ -168,6 +179,10 @@ def filter_blocked(
 
 def get_blocked_domains(user: AbstractUser | AnonymousUser) -> list[str | None]:
     """Get list of blocked domains for a user."""
+    # AnonymousUser doesn't have blocklists
+    if isinstance(user, AnonymousUser):
+        return []
+
     blocklists = BlockList.objects.filter(user=user)
     blocked_domains: set[str] = set()
     for blocklist in blocklists:
@@ -231,7 +246,7 @@ def parallel_search(query: str, user: AbstractUser | AnonymousUser) -> list[Any]
                 engine_name = SEARCH_ENGINES[i].name
                 engine_results[engine_name] = len(res) if isinstance(res, list) else 0
                 all_results.extend(res if isinstance(res, list) else [])
-            except Exception:  # noqa: BLE001
+            except Exception:  # pylint: disable=broad-exception-caught
                 engine_name = (
                     SEARCH_ENGINES[i].name if i < len(SEARCH_ENGINES) else "unknown"
                 )

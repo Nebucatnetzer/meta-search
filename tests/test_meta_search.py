@@ -175,10 +175,7 @@ class TestFetchResults:
     def test_fetch_results_strips_trailing_question_mark(
         self, mock_get_page: AsyncMock
     ) -> None:
-        """Test that trailing ?
-
-        is stripped from URL before adding query.
-        """
+        """Test that trailing "?" is stripped from URL before adding query."""
         # Mock the page and response
         mock_page = AsyncMock()
         mock_response = Mock()

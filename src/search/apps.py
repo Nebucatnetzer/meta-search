@@ -1,10 +1,8 @@
 """Django app configuration for the search application."""
 
-import asyncio
 import logging
 import signal
 import sys
-import threading
 from typing import Any
 
 from django.apps import AppConfig
@@ -41,36 +39,13 @@ class SearchConfig(AppConfig):
             return False
 
         # Don't start browser during testing
-        if "test" in sys.argv or "pytest" in sys.modules:
-            return False
-
-        return True
+        return not ("test" in sys.argv or "pytest" in sys.modules)
 
     def _setup_browser_lifecycle(self) -> None:
         """Set up browser startup and shutdown."""
-
-        def start_browser_thread() -> None:
-            """Start browser in a separate thread."""
-            try:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-
-                async def start_browser() -> None:
-                    from search.browser_manager import browser_manager
-
-                    await browser_manager.start()
-
-                loop.run_until_complete(start_browser())
-                logger.info("Browser manager started successfully")
-
-            except Exception:  # noqa: BLE001
-                logger.exception("Failed to start browser manager")
-
-        # Start browser in background thread
-        browser_thread = threading.Thread(
-            target=start_browser_thread, name="BrowserManagerThread", daemon=True
-        )
-        browser_thread.start()
+        # With thread-local browser storage, we don't need to pre-start browsers
+        # They are created on-demand per thread
+        logger.info("Browser lifecycle configured for thread-local instances")
 
         # Register shutdown handler
         self._register_shutdown_handler()
@@ -78,27 +53,20 @@ class SearchConfig(AppConfig):
     def _register_shutdown_handler(self) -> None:
         """Register signal handlers for clean shutdown."""
 
-        def shutdown_handler(signum: int, frame: Any) -> None:  # noqa: ARG001
+        def shutdown_handler(signum: int, _frame: Any) -> None:
             """Handle shutdown signals."""
-            logger.info("Received signal %d, shutting down browser", signum)
+            signal_names: dict[int, str] = {
+                signal.SIGTERM: "SIGTERM",
+                signal.SIGINT: "SIGINT",
+            }
+            signal_name = signal_names.get(signum, f"Signal {signum}")
 
-            def stop_browser_sync() -> None:
-                try:
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
+            logger.info("Received %s, shutting down browsers", signal_name)
 
-                    async def stop_browser() -> None:
-                        from search.browser_manager import browser_manager
-
-                        await browser_manager.stop()
-
-                    loop.run_until_complete(stop_browser())
-                    logger.info("Browser manager stopped successfully")
-
-                except Exception:  # noqa: BLE001
-                    logger.exception("Error stopping browser manager")
-
-            stop_browser_sync()
+            # Note: With thread-local storage, each thread manages its own browser
+            # The main thread doesn't need to explicitly clean up other threads'
+            # browsers as they will be cleaned up when those threads exit
+            logger.info("Application shutting down cleanly")
 
         # Register handlers for common shutdown signals
         signal.signal(signal.SIGTERM, shutdown_handler)

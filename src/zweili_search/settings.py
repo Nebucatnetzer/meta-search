@@ -23,11 +23,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
-    msg = (
+    MSG = (
         "SECRET_KEY environment variable is required. "
         "Please set a secure SECRET_KEY environment variable."
     )
-    raise ValueError(msg)
+    raise ValueError(MSG)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", None)
