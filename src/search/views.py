@@ -7,13 +7,11 @@ from django.shortcuts import redirect
 from django.shortcuts import render
 
 from search.bangs import resolve_bang
-from search.meta_search import parallel_search
 
 
 @login_required
 def index(request: HttpRequest) -> HttpResponse:
     query = request.GET.get("query", "")
-    results = None
 
     if query:
         # Check for user bang
@@ -23,17 +21,10 @@ def index(request: HttpRequest) -> HttpResponse:
         )
         if url:
             return redirect(url)
-        # Otherwise, normal search
-        if query_without_bang:
-            # Try to find results for the bang query if the bang doesn't exist
-            results = parallel_search(query=query_without_bang, user=request.user)
-        else:
-            results = parallel_search(query=query, user=request.user)
-        if not results:
-            # If for some reason the search engine doesn't return anything we
-            # redirect the search query to Duckduckgo.
-            query_enc = urllib.parse.quote_plus(query)
-            url = f"https://duckduckgo.com?q={query_enc}"
-            return redirect(url)
 
-    return render(request, "search/index.html", {"results": results})
+        # If no bang found, redirect to default search engine (DuckDuckGo)
+        query_enc = urllib.parse.quote_plus(query)
+        url = f"https://duckduckgo.com?q={query_enc}"
+        return redirect(url)
+
+    return render(request, "search/index.html", {"results": None})
