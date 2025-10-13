@@ -24,7 +24,7 @@ def index(request: HttpRequest) -> HttpResponse:
 
         # If no bang found, redirect to default search engine (DuckDuckGo)
         query_enc = urllib.parse.quote_plus(query)
-        url = f"https://duckduckgo.com?q={query_enc}"
+        url = f"http://gwyn.2li.local:8080/search?q={query_enc}"
         return redirect(url)
 
     return render(request, "search/index.html", {"results": None})
