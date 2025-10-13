@@ -1,30 +1,4 @@
 * TODOs
-** NEXT Forward to default search engine :features:
-
-If there aren't any results for some reason, forward the search to a users default search engine.
-Maybe they can select one from their list of bangs.
-
-** NEXT Implement an env variable for ~SECRET_KEY~ :bugs:
-** NEXT Add models :enhancements:
-
-- [X] Bangs
-- [X] Users
-- [X] Blocklist
-- [ ] Results and their weights
-- [ ] providers
-  I could probably store the API key next to them?
-  #+begin_src python
-  google = {
-    name: "Google",
-    url: "https://google.ch",
-    api_key: os.environ['GOOGLE_API_KEY']
-  }
-  #+end_src
-
-** NEXT Implement weights :features:
-
-I want to be able to down-/uprank certain domains.
-
 ** NEXT Read ENV files :features:
 ** NEXT Run it as a systemd service :enhancements:
 
@@ -53,6 +27,28 @@ https://stackoverflow.com/questions/46701614/how-to-do-database-migration-using-
 
 I noticed it is quite hard to debug the application so it would useful to have some logging.
 However it should be without revealing any user data.
+
+* Done
+** DONE Forward to default search engine :features:
+CLOSED: [2025-10-13 Mon 17:59]
+
+If there aren't any results for some reason, forward the search to a users default search engine.
+Maybe they can select one from their list of bangs.
+
+** DONE Implement an env variable for ~SECRET_KEY~ :bugs:
+CLOSED: [2025-10-13 Mon 17:58]
+** DONE Add models :enhancements:
+CLOSED: [2025-10-13 Mon 17:59]
+
+- [X] Bangs
+- [X] Users
+- [X] Blocklist
+
+** CANCELLED Implement weights :features:
+Since we don't really search anymore it doens't make sense to implement this.
+CLOSED: [2025-10-13 Mon 17:59]
+
+I want to be able to down-/uprank certain domains.
 
 ** DONE Add derviation for the static files :enhancements:
 CLOSED: [2025-09-04 Thu 07:38]

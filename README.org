@@ -1,8 +1,4 @@
 * Custom Meta search
-
-This is at them moment not production ready!
-There are some security related adjustments I have to make before one should use this.
-
 ** Idea
 
 Kagi is a good product, but in my opinion, the company behind it has a few issues that make it impossible for me to use.
