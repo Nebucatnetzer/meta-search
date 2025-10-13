@@ -28,6 +28,8 @@ def resolve_bang(
         shortcut, search_query = parts
 
     try:
+        if isinstance(user, AnonymousUser):
+            return None, search_query
         bang = Bang.objects.get(shortcut=shortcut, user=user)
     except ObjectDoesNotExist:
         return None, search_query

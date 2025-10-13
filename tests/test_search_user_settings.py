@@ -17,7 +17,8 @@ class SearchUserModelTest(TestCase):
     def test_default_search_engine_url_field(self):
         user = User.objects.create_user(username="testuser", password="testpass123")
         self.assertEqual(
-            user.default_search_engine_url, "https://duckduckgo.com/?q={query}"
+            user.default_search_engine_url,
+            "https://searxng.zweili.org/search?q={query}",
         )
 
     def test_custom_search_engine_url(self):
@@ -42,7 +43,7 @@ class SearchViewTest(TestCase):
         response = self.client.get("/", {"query": "test search"})
 
         self.assertEqual(response.status_code, 302)
-        self.assertIn("duckduckgo.com", response.url)
+        self.assertIn("searxng.zweili.org", response.url)
         self.assertIn("test+search", response.url)
 
     def test_search_uses_custom_search_engine(self):
@@ -94,5 +95,6 @@ class SettingsViewTest(TestCase):
 
         self.user.refresh_from_db()
         self.assertEqual(
-            self.user.default_search_engine_url, "https://duckduckgo.com/?q={query}"
+            self.user.default_search_engine_url,
+            "https://searxng.zweili.org/search?q={query}",
         )
