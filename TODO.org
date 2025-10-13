@@ -1,8 +1,4 @@
 * TODOs
-** DONE Fix integration tests :bugs:
-CLOSED: [2025-10-11 Sat 20:57]
-** DONE Implement an env variable for ~SECRET_KEY~ :bugs:
-CLOSED: [2025-10-11 Sat 21:52]
 ** NEXT Implement playwright :enhancements:
 
 We could maybe start a chromium instance at the start of the service and then use it for all searches. This way we wouldn't have to way wait for the startup and teardown of it.
@@ -56,10 +52,20 @@ https://stackoverflow.com/questions/46701614/how-to-do-database-migration-using-
 I want to be able to down-/uprank certain domains.
 
 ** NEXT Read ENV files :features:
-** NEXT Add pkgs to outputs
+** NEXT Add pkgs to outputs :enhancements:
 :PROPERTIES:
 :url:      https://github.com/hercules-ci/flake-parts/discussions/297#discussioncomment-13831807
 :END:
+
+** NEXT Check if we can remove unittests.mock from tests :enhancements:
+
+We use pytest which can mock much easier.
+
+* DONE
+** DONE Implement an env variable for ~SECRET_KEY~ :bugs:
+CLOSED: [2025-10-11 Sat 21:52]
+** DONE Fix integration tests :bugs:
+CLOSED: [2025-10-11 Sat 20:57]
 ** DONE Add logging
 CLOSED: [2025-10-11 Sat 19:06]
 
