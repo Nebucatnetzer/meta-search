@@ -29,6 +29,10 @@ extend-exclude = '''
 )/
 '''
 
+[tool.docformatter]
+black=true
+exclude = ["migrations"]
+
 [tool.isort]
 force_single_line = true
 line_length = 88
@@ -77,11 +81,6 @@ ignore = [
 
 [tool.ruff.lint.pydocstyle]
 convention = "pep257"
-
-[tool.docformatter]
-wrap-summaries = 88
-wrap-descriptions = 88
-exclude = ["migrations"]
 
 [tool.coverage.run]
 omit = [

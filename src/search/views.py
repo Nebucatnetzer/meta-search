@@ -1,4 +1,5 @@
 import urllib.parse
+from typing import cast
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -6,7 +7,6 @@ from django.http import HttpRequest
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
-from typing import cast
 
 from search.bangs import resolve_bang
 from search.models import SearchUser
