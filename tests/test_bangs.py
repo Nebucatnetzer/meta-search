@@ -42,8 +42,8 @@ def test_resolve_bang_no_bang_prefix(user: "SearchUser") -> None:
 
 
 def test_resolve_bang_with_query(
-    user: "SearchUser", bang: Bang
-) -> None:  # noqa: ARG001
+    user: "SearchUser", bang: Bang  # noqa: ARG001
+) -> None:
     """Test bang resolution with a search query."""
     url, query = resolve_bang(user, "!g test search")
     assert url == "https://www.google.com/search?q=test+search"
@@ -51,8 +51,8 @@ def test_resolve_bang_with_query(
 
 
 def test_resolve_bang_with_empty_query(
-    user: "SearchUser", bang: Bang
-) -> None:  # noqa: ARG001
+    user: "SearchUser", bang: Bang  # noqa: ARG001
+) -> None:
     """Test bang resolution with empty query."""
     url, query = resolve_bang(user, "!g")
     assert url == "https://www.google.com/search?q="
@@ -75,8 +75,8 @@ def test_resolve_bang_anonymous_user() -> None:
 
 
 def test_resolve_bang_only_shortcut_no_space(
-    user: "SearchUser", bang: Bang
-) -> None:  # noqa: ARG001
+    user: "SearchUser", bang: Bang  # noqa: ARG001
+) -> None:
     """Test bang with just shortcut and no space."""
     url, query = resolve_bang(user, "!g")
     assert url == "https://www.google.com/search?q="
@@ -84,8 +84,8 @@ def test_resolve_bang_only_shortcut_no_space(
 
 
 def test_resolve_bang_url_encoding(
-    user: "SearchUser", bang: Bang
-) -> None:  # noqa: ARG001
+    user: "SearchUser", bang: Bang  # noqa: ARG001
+) -> None:
     """Test URL encoding of special characters in query."""
     url, query = resolve_bang(user, "!g test with spaces & symbols")
     assert url == "https://www.google.com/search?q=test+with+spaces+%26+symbols"
@@ -93,8 +93,8 @@ def test_resolve_bang_url_encoding(
 
 
 def test_resolve_bang_strips_whitespace(
-    user: "SearchUser", bang: Bang
-) -> None:  # noqa: ARG001
+    user: "SearchUser", bang: Bang  # noqa: ARG001
+) -> None:
     """Test that whitespace is stripped from query for URL encoding."""
     url, query = resolve_bang(user, "!g   test query   ")
     assert url == "https://www.google.com/search?q=test+query"

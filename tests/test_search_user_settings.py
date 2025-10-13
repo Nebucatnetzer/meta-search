@@ -83,8 +83,8 @@ def test_settings_view_requires_login(client: "Client") -> None:
 
 
 def test_settings_view_renders_correctly(
-    user: "SearchUser", client: "Client"
-) -> None:  # noqa: ARG001
+    user: "SearchUser", client: "Client"  # noqa: ARG001
+) -> None:
     """Test that settings view renders correctly for authenticated users."""
     client.login(username="testuser", password="testpass123")
     response = client.get("/settings/")

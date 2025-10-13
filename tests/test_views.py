@@ -33,8 +33,8 @@ def test_index_view_requires_login(client: "Client") -> None:
 
 
 def test_index_view_no_query(
-    user: "SearchUser", client: "Client"
-) -> None:  # noqa: ARG001
+    user: "SearchUser", client: "Client"  # noqa: ARG001
+) -> None:
     """Test index view with no query parameter."""
     client.login(username="testuser", password="testpass123")
     response = client.get("/")
@@ -59,8 +59,8 @@ def test_index_view_with_bang_redirect(user: "SearchUser", client: "Client") -> 
 
 
 def test_index_view_with_query_no_bang(
-    user: "SearchUser", client: "Client"
-) -> None:  # noqa: ARG001
+    user: "SearchUser", client: "Client"  # noqa: ARG001
+) -> None:
     """Test index view with regular search query."""
     client.login(username="testuser", password="testpass123")
     response = client.get("/", {"query": "test search"})
