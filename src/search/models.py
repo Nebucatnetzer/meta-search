@@ -30,6 +30,6 @@ class Bang(models.Model):
 class SearchUser(AbstractUser):
     default_search_engine_url = models.URLField(
         max_length=500,
-        default="https://duckduckgo.com/?q={query}",
+        default="https://searxng.zweili.org/search?q={query}",
         help_text="Default search engine URL template. Use {query} as placeholder.",
     )
