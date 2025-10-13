@@ -1,7 +1,8 @@
 """Test cases for Django views."""
 
 import os
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
+from typing import cast
 
 import django
 from django.conf import settings
@@ -31,7 +32,9 @@ def test_index_view_requires_login(client: "Client") -> None:
     assert response.status_code == constants.HTTP_FOUND
 
 
-def test_index_view_no_query(user: "SearchUser", client: "Client") -> None:  # noqa: ARG001
+def test_index_view_no_query(
+    user: "SearchUser", client: "Client"
+) -> None:  # noqa: ARG001
     """Test index view with no query parameter."""
     client.login(username="testuser", password="testpass123")
     response = client.get("/")
@@ -55,7 +58,9 @@ def test_index_view_with_bang_redirect(user: "SearchUser", client: "Client") -> 
     assert redirect_response.url == "https://www.google.com/search?q=test+search"
 
 
-def test_index_view_with_query_no_bang(user: "SearchUser", client: "Client") -> None:  # noqa: ARG001
+def test_index_view_with_query_no_bang(
+    user: "SearchUser", client: "Client"
+) -> None:  # noqa: ARG001
     """Test index view with regular search query."""
     client.login(username="testuser", password="testpass123")
     response = client.get("/", {"query": "test search"})

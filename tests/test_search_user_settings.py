@@ -1,7 +1,9 @@
 """Test cases for search user settings functionality."""
 
 import os
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import cast
 
 import django
 from django.conf import settings
@@ -27,7 +29,7 @@ def test_default_search_engine_url_field(db: Any) -> None:  # noqa: ARG001
     """Test the default search engine URL field."""
     user = cast(
         "SearchUser",
-        User.objects.create_user(username="testuser1", password="testpass123")
+        User.objects.create_user(username="testuser1", password="testpass123"),
     )
     assert (
         user.default_search_engine_url == "https://searxng.zweili.org/search?q={query}"
@@ -36,11 +38,14 @@ def test_default_search_engine_url_field(db: Any) -> None:  # noqa: ARG001
 
 def test_custom_search_engine_url(db: Any) -> None:  # noqa: ARG001
     """Test setting a custom search engine URL."""
-    user = cast("SearchUser", User.objects.create_user(
-        username="testuser2",
-        password="testpass123",
-        default_search_engine_url="https://www.google.com/search?q={query}",
-    ))
+    user = cast(
+        "SearchUser",
+        User.objects.create_user(
+            username="testuser2",
+            password="testpass123",
+            default_search_engine_url="https://www.google.com/search?q={query}",
+        ),
+    )
     assert user.default_search_engine_url == "https://www.google.com/search?q={query}"
 
 
@@ -77,7 +82,9 @@ def test_settings_view_requires_login(client: "Client") -> None:
     assert response.status_code == constants.HTTP_FOUND
 
 
-def test_settings_view_renders_correctly(user: "SearchUser", client: "Client") -> None:  # noqa: ARG001
+def test_settings_view_renders_correctly(
+    user: "SearchUser", client: "Client"
+) -> None:  # noqa: ARG001
     """Test that settings view renders correctly for authenticated users."""
     client.login(username="testuser", password="testpass123")
     response = client.get("/settings/")

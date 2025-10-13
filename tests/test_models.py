@@ -39,9 +39,7 @@ def test_bang_unique_together_constraint(user: "SearchUser") -> None:
         url_template="https://example.com/search?q={query}",
     )
 
-    user2 = User.objects.create_user(
-        username="testuser2", password="testpass123"
-    )
+    user2 = User.objects.create_user(username="testuser2", password="testpass123")
     Bang.objects.create(
         user=user2,
         shortcut="test",

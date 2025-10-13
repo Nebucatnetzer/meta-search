@@ -1,7 +1,9 @@
 """Global pytest configuration for tests."""
 
 import os
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import cast
 
 import django
 import pytest
@@ -22,6 +24,7 @@ User = get_user_model()
 @pytest.fixture
 def user(db: Any) -> "SearchUser":  # noqa: ARG001
     """Create a test user with database access."""
-    return cast("SearchUser", User.objects.create_user(
-        username="testuser", password="testpass123"
-    ))
+    return cast(
+        "SearchUser",
+        User.objects.create_user(username="testuser", password="testpass123"),
+    )

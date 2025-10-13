@@ -11,8 +11,9 @@ import zweili_search.settings
 
 def test_secret_key_missing_raises_error() -> None:
     """Test that missing SECRET_KEY environment variable raises error."""
-    with patch.dict(os.environ, {}, clear=True), pytest.raises(
-        ValueError, match="SECRET_KEY environment variable is required"
+    with (
+        patch.dict(os.environ, {}, clear=True),
+        pytest.raises(ValueError, match="SECRET_KEY environment variable is required"),
     ):
         importlib.reload(zweili_search.settings)
 
