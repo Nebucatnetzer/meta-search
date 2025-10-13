@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+
+    {% if user.is_authenticated %}
+        <h2>Settings</h2>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form action="{% url 'settings' %}" method="post">
+            {% csrf_token %}
+            <label for="default_search_engine_url">Default Search Engine URL:</label>
+            <input type="url"
+                   id="default_search_engine_url"
+                   name="default_search_engine_url"
+                   value="{{ current_url }}"
+                   placeholder="https://duckduckgo.com/?q={query}"
+                   required>
+            <small>Use {query} as a placeholder for the search terms. Examples:</small>
+            <ul>
+                <li>DuckDuckGo: <code>https://duckduckgo.com/?q={query}</code></li>
+                <li>Google: <code>https://www.google.com/search?q={query}</code></li>
+                <li>Bing: <code>https://www.bing.com/search?q={query}</code></li>
+                <li>Yandex: <code>https://yandex.com/search/?text={query}</code></li>
+            </ul>
+            <button type="submit">Save Settings</button>
+        </form>
+
+        <p><a href="{% url 'index' %}">← Back to Search</a></p>
+    {% endif %}
+{% endblock content %}
