@@ -19,7 +19,6 @@ class GunicornApplication(gunicorn.app.base.BaseApplication):
         Args:
             app: The Django WSGI application handler.
             options: Configuration options for Gunicorn.
-
         """
         self.options = options or {}
         self.application = app
