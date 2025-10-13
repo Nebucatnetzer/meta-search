@@ -72,12 +72,8 @@ descriptions["lint"]="Run the linters against the src directory."
 tasks["lint"]=lint
 
 test() {
-    DJANGO_SETTINGS_MODULE=zweili_search.settings.ram_test pytest \
-        -nauto \
-        --nomigrations \
-        --cov-config="$DEVENV_ROOT/.coveragerc" \
-        --cov-report=html \
-        "$DEVENV_ROOT/src"
+    cd "$DEVENV_ROOT" || return
+    pytest
 }
 descriptions["test"]="Run the tests in the RAM DB and write a coverage report."
 tasks["test"]=test
