@@ -128,6 +128,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 AUTH_USER_MODEL = "search.SearchUser"
+SESSION_SAVE_EVERY_REQUEST = True
 
 
 # Internationalization
