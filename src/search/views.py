@@ -1,6 +1,7 @@
 """Views for the search application."""
 
 import urllib.parse
+from typing import TYPE_CHECKING
 from typing import cast
 
 from django.contrib import messages
@@ -11,7 +12,9 @@ from django.shortcuts import redirect
 from django.shortcuts import render
 
 from search.bangs import resolve_bang
-from search.models import SearchUser
+
+if TYPE_CHECKING:
+    from search.models import SearchUser
 
 
 @login_required
@@ -30,7 +33,7 @@ def index(request: HttpRequest) -> HttpResponse:
 
         # If no bang found, redirect to user's default search engine
         query_enc = urllib.parse.quote_plus(query)
-        user = cast(SearchUser, request.user)
+        user = cast("SearchUser", request.user)
         url = user.default_search_engine_url.replace("{query}", query_enc)
         return redirect(url)
 
@@ -39,7 +42,8 @@ def index(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def settings(request: HttpRequest) -> HttpResponse:
-    user = cast(SearchUser, request.user)
+    """Handle user settings page."""
+    user = cast("SearchUser", request.user)
 
     if request.method == "POST":
         new_url = request.POST.get("default_search_engine_url", "").strip()

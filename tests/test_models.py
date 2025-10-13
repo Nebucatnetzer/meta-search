@@ -1,3 +1,5 @@
+"""Test cases for Django models."""
+
 import os
 
 import django
@@ -6,6 +8,7 @@ from django.conf import settings
 if not settings.configured:
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "zweili_search.settings")
     django.setup()
+
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -16,21 +19,26 @@ User = get_user_model()
 
 
 class BangModelTest(TestCase):
-    def setUp(self):
+    """Test cases for Bang model functionality."""
+
+    def setUp(self) -> None:
+        """Set up test data."""
         self.user = User.objects.create_user(
             username="testuser", password="testpass123"
         )
 
-    def test_bang_str_method(self):
+    def test_bang_str_method(self) -> None:
+        """Test the string representation of Bang model."""
         bang = Bang.objects.create(
             user=self.user,
             shortcut="g",
             url_template="https://www.google.com/search?q={query}",
         )
         expected_str = "!g -> https://www.google.com/search?q={query}"
-        self.assertEqual(str(bang), expected_str)
+        assert str(bang) == expected_str
 
-    def test_bang_unique_together_constraint(self):
+    def test_bang_unique_together_constraint(self) -> None:
+        """Test that the same shortcut can be used by different users."""
         Bang.objects.create(
             user=self.user,
             shortcut="test",
@@ -47,6 +55,6 @@ class BangModelTest(TestCase):
         bang1 = Bang.objects.get(user=self.user, shortcut="test")
         bang2 = Bang.objects.get(user=user2, shortcut="test")
 
-        self.assertNotEqual(bang1.id, bang2.id)
-        self.assertEqual(bang1.shortcut, bang2.shortcut)
-        self.assertNotEqual(bang1.user, bang2.user)
+        assert bang1.pk != bang2.pk
+        assert bang1.shortcut == bang2.shortcut
+        assert bang1.user != bang2.user

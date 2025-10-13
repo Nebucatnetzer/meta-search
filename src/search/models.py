@@ -28,6 +28,8 @@ class Bang(models.Model):
 
 
 class SearchUser(AbstractUser):
+    """Extended user model with search engine preferences."""
+
     default_search_engine_url = models.URLField(
         max_length=500,
         default="https://searxng.zweili.org/search?q={query}",

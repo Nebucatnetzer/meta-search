@@ -73,7 +73,9 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = [
+  "D102",
   "S101",  # Use of assert detected, we use pytest so kind of obvious
+  "S106",  # Dummy passwords for tests
 ]
 "tooling/**/*.py" = [
   "INP001",  # Tooling scripts don't need __init__.py
