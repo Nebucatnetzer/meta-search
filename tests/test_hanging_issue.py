@@ -54,8 +54,8 @@ class TestHangingIssue:
                 ], f"Unexpected status: {response.status_code}"
                 completed.set()
             except (
-                Exception
-            ) as e:  # pylint: disable=broad-exception-caught  # noqa: BLE001
+                Exception  # noqa: BLE001
+            ) as e:  # pylint: disable=broad-exception-caught
                 exception_holder.append(e)
                 completed.set()
 
@@ -90,8 +90,8 @@ class TestHangingIssue:
                 )
                 results.append((query_id, response.status_code))
             except (
-                Exception
-            ) as e:  # pylint: disable=broad-exception-caught  # noqa: BLE001
+                Exception  # noqa: BLE001
+            ) as e:  # pylint: disable=broad-exception-caught
                 exceptions.append((query_id, e))
 
         # Start multiple requests concurrently
@@ -156,11 +156,10 @@ class TestHangingIssue:
 
         async def _test_browser_manager_async() -> bool:
             """Async test of browser manager."""
-            page = await get_browser_page()
-            await page.goto("about:blank")
-            content = await page.content()
-            await page.close()
-            return len(content) > 0
+            async with get_browser_page() as page:
+                await page.goto("about:blank")
+                content = await page.content()
+                return len(content) > 0
 
         def test_browser_access() -> None:
             try:
@@ -171,8 +170,8 @@ class TestHangingIssue:
                 result = run_test()
                 results.append(result)
             except (
-                Exception
-            ) as e:  # pylint: disable=broad-exception-caught  # noqa: BLE001
+                Exception  # noqa: BLE001
+            ) as e:  # pylint: disable=broad-exception-caught
                 exceptions.append(e)
 
         # Test concurrent access

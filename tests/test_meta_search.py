@@ -1,5 +1,9 @@
 """Unit tests for meta search functionality."""
 
+from collections.abc import AsyncGenerator
+from contextlib import AbstractAsyncContextManager
+from contextlib import asynccontextmanager
+from typing import Any
 from unittest.mock import AsyncMock
 from unittest.mock import Mock
 from unittest.mock import patch
@@ -17,6 +21,16 @@ from search.models import BlockList
 from search.models import SearchUser
 
 # pylint: disable=redefined-outer-name,unused-argument
+
+
+def create_mock_browser_page_context(mock_page: Mock) -> AbstractAsyncContextManager[Mock]:
+    """Helper to create a mock async context manager for get_browser_page."""
+
+    @asynccontextmanager
+    async def mock_context_manager() -> AsyncGenerator[Mock, None]:
+        yield mock_page
+
+    return mock_context_manager()
 
 
 @pytest.fixture
@@ -87,7 +101,7 @@ class TestFetchResults:
         mock_response.status = 200
         mock_page.goto.return_value = mock_response
         mock_page.content.return_value = "<html>test content</html>"
-        mock_get_page.return_value = mock_page
+        mock_get_page.return_value = create_mock_browser_page_context(mock_page)
 
         def parser(
             html: str,
@@ -109,7 +123,7 @@ class TestFetchResults:
         call_args = mock_page.goto.call_args
         assert call_args[0][0] == "https://test.com?q=test+query"
         assert results == [{"title": "test", "url": "https://example.com"}]
-        mock_page.close.assert_called_once()
+        # Note: page.close() is handled by context manager
 
     @patch("search.meta_search.get_browser_page")
     def test_fetch_results_params_mode(self, mock_get_page: AsyncMock) -> None:
@@ -120,7 +134,7 @@ class TestFetchResults:
         mock_response.status = 200
         mock_page.goto.return_value = mock_response
         mock_page.content.return_value = "<html>test content</html>"
-        mock_get_page.return_value = mock_page
+        mock_get_page.return_value = create_mock_browser_page_context(mock_page)
 
         def parser(
             html: str,
@@ -143,7 +157,7 @@ class TestFetchResults:
         expected_url = "https://test.com/search?query=test+query&format=json"
         assert call_args[0][0] == expected_url
         assert results == [{"title": "result", "url": "https://example.com"}]
-        mock_page.close.assert_called_once()
+        # Note: page.close() is handled by context manager
 
     @patch("search.meta_search.get_browser_page")
     def test_fetch_results_with_headers(self, mock_get_page: AsyncMock) -> None:
@@ -154,7 +168,7 @@ class TestFetchResults:
         mock_response.status = 200
         mock_page.goto.return_value = mock_response
         mock_page.content.return_value = "<html>test content</html>"
-        mock_get_page.return_value = mock_page
+        mock_get_page.return_value = create_mock_browser_page_context(mock_page)
 
         headers = {"User-Agent": "CustomBot"}
         engine = Engine(
@@ -169,7 +183,7 @@ class TestFetchResults:
 
         # Verify headers were set on the page
         mock_page.set_extra_http_headers.assert_called_once_with(headers)
-        mock_page.close.assert_called_once()
+        # Note: page.close() is handled by context manager
 
     @patch("search.meta_search.get_browser_page")
     def test_fetch_results_strips_trailing_question_mark(
@@ -182,7 +196,13 @@ class TestFetchResults:
         mock_response.status = 200
         mock_page.goto.return_value = mock_response
         mock_page.content.return_value = "<html>test content</html>"
-        mock_get_page.return_value = mock_page
+
+        # Mock the async context manager
+        @asynccontextmanager
+        async def mock_context_manager() -> AsyncGenerator[Mock, None]:
+            yield mock_page
+
+        mock_get_page.return_value = mock_context_manager()
 
         engine = Engine(
             name="TestEngine",
@@ -197,7 +217,7 @@ class TestFetchResults:
         call_args = mock_page.goto.call_args
         # The URL should have trailing ? stripped, then new query added
         assert call_args[0][0] == "https://test.com/?q=test+search"
-        mock_page.close.assert_called_once()
+        # Note: page.close() is not called directly anymore since context manager handles cleanup
 
 
 class TestFilterBlocked:
@@ -401,16 +421,25 @@ class TestFilterResults:
 class TestParallelSearch:
     """Tests for parallel_search function."""
 
-    @patch("search.meta_search.fetch_results")
+    @patch("search.meta_search.get_blocked_domains_async")
+    @patch("search.meta_search.fetch_results_async")
     def test_parallel_search_basic(
         self,
         mock_fetch: Mock,
+        mock_get_blocked_domains: Mock,
         user: SearchUser,
     ) -> None:
         """Test basic parallel search functionality."""
-        mock_fetch.return_value = [
-            {"title": "Result 1", "url": "https://example.com"},
-        ]
+
+        # Mock async functions need to return coroutines
+        async def mock_fetch_results(*args: Any) -> list[dict[str, str]]:
+            return [{"title": "Result 1", "url": "https://example.com"}]
+
+        async def mock_blocked_domains(*args: Any) -> list[str]:
+            return []
+
+        mock_fetch.side_effect = mock_fetch_results
+        mock_get_blocked_domains.side_effect = mock_blocked_domains
 
         results = parallel_search("test query", user)
 
@@ -418,14 +447,24 @@ class TestParallelSearch:
         assert results[0]["title"] == "Result 1"
         mock_fetch.assert_called()
 
-    @patch("search.meta_search.fetch_results")
+    @patch("search.meta_search.get_blocked_domains_async")
+    @patch("search.meta_search.fetch_results_async")
     def test_parallel_search_strips_query(
         self,
         mock_fetch: Mock,
+        mock_get_blocked_domains: Mock,
         user: SearchUser,
     ) -> None:
         """Test that query is stripped before searching."""
-        mock_fetch.return_value = []
+
+        async def mock_fetch_results(*args: Any) -> list[dict[str, str]]:
+            return []
+
+        async def mock_blocked_domains(*args: Any) -> list[str]:
+            return []
+
+        mock_fetch.side_effect = mock_fetch_results
+        mock_get_blocked_domains.side_effect = mock_blocked_domains
 
         parallel_search("  test query  ", user)
 
@@ -433,65 +472,108 @@ class TestParallelSearch:
         call_args = mock_fetch.call_args
         assert call_args[0][1] == "test query"
 
-    @patch("search.meta_search.fetch_results")
+    @patch("search.meta_search.get_blocked_domains_async")
+    @patch("search.meta_search.fetch_results_async")
     def test_parallel_search_deduplicates(
         self,
         mock_fetch: Mock,
+        mock_get_blocked_domains: Mock,
         user: SearchUser,
     ) -> None:
         """Test that duplicate results are removed."""
-        mock_fetch.return_value = [
-            {"title": "Result 1", "url": "https://example.com"},
-            {"title": "Result 1", "url": "https://example.com"},
-        ]
+
+        async def mock_fetch_results(*args: Any) -> list[dict[str, str]]:
+            return [
+                {"title": "Result 1", "url": "https://example.com"},
+                {"title": "Result 1", "url": "https://example.com"},
+            ]
+
+        async def mock_blocked_domains(*args: Any) -> list[str]:
+            return []
+
+        mock_fetch.side_effect = mock_fetch_results
+        mock_get_blocked_domains.side_effect = mock_blocked_domains
 
         results = parallel_search("test", user)
 
         assert len(results) == 1
 
-    @patch("search.meta_search.fetch_results")
+    @patch("search.meta_search.get_blocked_domains_async")
+    @patch("search.meta_search.fetch_results_async")
     def test_parallel_search_filters_blocked(
         self,
         mock_fetch: Mock,
+        mock_get_blocked_domains: Mock,
         user: SearchUser,
         blocklist: BlockList,
     ) -> None:
         """Test that blocked domains are filtered."""
-        mock_fetch.return_value = [
-            {"title": "Good", "url": "https://example.com"},
-            {"title": "Spam", "url": "https://spam.com"},
-        ]
+
+        async def mock_fetch_results(*args: Any) -> list[dict[str, str]]:
+            return [
+                {"title": "Good", "url": "https://example.com"},
+                {"title": "Spam", "url": "https://spam.com"},
+            ]
+
+        async def mock_blocked_domains(*args: Any) -> list[str]:
+            return ["spam.com"]
+
+        mock_fetch.side_effect = mock_fetch_results
+        mock_get_blocked_domains.side_effect = mock_blocked_domains
 
         results = parallel_search("test", user)
 
         assert len(results) == 1
         assert results[0]["url"] == "https://example.com"
 
-    @patch("search.meta_search.fetch_results")
+    @patch("search.meta_search.get_blocked_domains_async")
+    @patch("search.meta_search.fetch_results_async")
     def test_parallel_search_handles_non_list_results(
         self,
         mock_fetch: Mock,
+        mock_get_blocked_domains: Mock,
         user: SearchUser,
     ) -> None:
         """Test handling of non-list results from engines."""
-        mock_fetch.return_value = None
+
+        async def mock_fetch_results(*args: Any) -> None:
+            return None
+
+        async def mock_blocked_domains(*args: Any) -> list[str]:
+            return []
+
+        mock_fetch.side_effect = mock_fetch_results
+        mock_get_blocked_domains.side_effect = mock_blocked_domains
 
         results = parallel_search("test", user)
 
         assert not results
 
-    @patch("search.meta_search.fetch_results")
+    @patch("search.meta_search.get_blocked_domains_async")
+    @patch("search.meta_search.fetch_results_async")
     def test_parallel_search_combines_results(
         self,
         mock_fetch: Mock,
+        mock_get_blocked_domains: Mock,
         user: SearchUser,
     ) -> None:
         """Test that results from multiple engines are combined."""
+
+        async def mock_blocked_domains(*args: Any) -> list[str]:
+            return []
+
+        mock_get_blocked_domains.side_effect = mock_blocked_domains
+
         # Simulate different results from different calls
-        mock_fetch.side_effect = [
-            [{"title": "Result 1", "url": "https://example1.com"}],
-            [{"title": "Result 2", "url": "https://example2.com"}],
-        ]
+        call_count = [0]
+
+        async def mock_fetch_results(*args: Any) -> list[dict[str, str]]:
+            if call_count[0] == 0:
+                call_count[0] += 1
+                return [{"title": "Result 1", "url": "https://example1.com"}]
+            return [{"title": "Result 2", "url": "https://example2.com"}]
+
+        mock_fetch.side_effect = mock_fetch_results
 
         results = parallel_search("test", user)
 

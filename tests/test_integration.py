@@ -1,5 +1,8 @@
 """Integration and functional tests for the meta-search application."""
 
+from collections.abc import AsyncGenerator
+from contextlib import AbstractAsyncContextManager
+from contextlib import asynccontextmanager
 from unittest.mock import AsyncMock
 from unittest.mock import Mock
 from unittest.mock import patch
@@ -17,14 +20,26 @@ from search.models import SearchUser
 # pylint: disable=redefined-outer-name
 
 
-def create_mock_playwright_page(html_content: str) -> AsyncMock:
-    """Create a standard mock Playwright page with the given HTML content."""
+def create_mock_playwright_page(html_content: str) -> AbstractAsyncContextManager[AsyncMock]:
+    """Create a standard mock Playwright page context manager with the given HTML.
+
+    Args:
+        html_content: The HTML content to return from the mock page
+
+    Returns:
+        AsyncMock: A mock context manager that yields a mock page
+    """
     mock_page = AsyncMock()
     mock_response = Mock()
     mock_response.status = 200
     mock_page.goto.return_value = mock_response
     mock_page.content.return_value = html_content
-    return mock_page
+
+    @asynccontextmanager
+    async def mock_context_manager() -> AsyncGenerator[AsyncMock, None]:
+        yield mock_page
+
+    return mock_context_manager()
 
 
 @pytest.fixture

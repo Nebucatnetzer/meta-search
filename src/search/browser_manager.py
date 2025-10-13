@@ -1,7 +1,11 @@
 """Global Playwright browser manager for web scraping."""
 
+import asyncio
+import contextlib
 import logging
 import threading
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 
 from playwright.async_api import Browser
 from playwright.async_api import BrowserContext
@@ -12,7 +16,7 @@ from playwright.async_api import async_playwright
 logger = logging.getLogger(__name__)
 
 
-class BrowserManager:
+class BrowserManager:  # pylint: disable=too-many-instance-attributes
     """Singleton manager for Playwright browser instance."""
 
     _instance: "BrowserManager | None" = None
@@ -37,6 +41,9 @@ class BrowserManager:
         self._context: BrowserContext | None = None
         self._is_started = False
         self._lock = threading.Lock()
+        self._page_pool: list[Page] = []
+        self._page_pool_lock = asyncio.Lock()
+        self._max_pool_size = 10
 
     async def start(self) -> None:
         """Start the Playwright browser."""
@@ -95,6 +102,13 @@ class BrowserManager:
     async def _cleanup(self) -> None:
         """Clean up browser resources."""
         try:
+            # Close all pages in the pool
+            async with self._page_pool_lock:
+                for page in self._page_pool:
+                    with contextlib.suppress(Exception):
+                        await page.close()
+                self._page_pool.clear()
+
             if self._context:
                 await self._context.close()
                 self._context = None
@@ -110,14 +124,53 @@ class BrowserManager:
         except Exception:  # pylint: disable=broad-exception-caught
             logger.exception("Error during browser cleanup")
 
-    async def get_page(self) -> Page:
-        """Get a new page from the browser context."""
+    @asynccontextmanager
+    async def get_page(self) -> AsyncGenerator[Page, None]:
+        """Get a page from the pool or create a new one."""
         if not self._is_started or not self._context:
             msg = "Browser manager not started. Call start() first."
             raise RuntimeError(msg)
 
-        # Headers are already set in the context, no need to set them again
-        return await self._context.new_page()
+        page: Page | None = None
+
+        # Try to get a page from the pool
+        async with self._page_pool_lock:
+            if self._page_pool:
+                page = self._page_pool.pop()
+                logger.debug(
+                    "Reused page from pool (pool size: %d)", len(self._page_pool)
+                )
+            else:
+                logger.debug("Creating new page (pool empty)")
+
+        # Create new page if none available in pool
+        if page is None:
+            page = await self._context.new_page()
+
+        try:
+            yield page
+        finally:
+            # Return page to pool if it's still valid and pool isn't full
+            try:
+                if not page.is_closed():
+                    async with self._page_pool_lock:
+                        if len(self._page_pool) < self._max_pool_size:
+                            # Clear any existing content/state
+                            await page.goto("about:blank")
+                            self._page_pool.append(page)
+                            logger.debug(
+                                "Returned page to pool (pool size: %d)",
+                                len(self._page_pool),
+                            )
+                        else:
+                            await page.close()
+                            logger.debug("Pool full, closed page")
+                else:
+                    logger.debug("Page was already closed")
+            except Exception:  # pylint: disable=broad-exception-caught
+                logger.exception("Error returning page to pool, closing page")
+                with contextlib.suppress(Exception):
+                    await page.close()
 
     @property
     def is_started(self) -> bool:
@@ -135,43 +188,12 @@ async def ensure_browser_started() -> None:
         await browser_manager.start()
 
 
-# Thread-local storage for browser instances
-_thread_local = threading.local()
-
-
-async def _ensure_thread_browser() -> None:
-    """Ensure browser exists for current thread."""
-    if not hasattr(_thread_local, "playwright") or not _thread_local.playwright:
-        # Import inside function to avoid circular imports
-        playwright_module = __import__(
-            "playwright.async_api", fromlist=["async_playwright"]
-        )
-        async_playwright_func = playwright_module.async_playwright
-
-        _thread_local.playwright = await async_playwright_func().start()
-        _thread_local.browser = await _thread_local.playwright.firefox.launch(
-            headless=True,
-            args=[
-                "--no-sandbox",
-            ],
-        )
-
-        _thread_local.context = await _thread_local.browser.new_context(
-            user_agent=(
-                "Mozilla/5.0 (X11; Linux x86_64; rv:140.0) "
-                "Gecko/20100101 Firefox/140.0"
-            ),
-            viewport={"width": 1920, "height": 1080},
-            locale="en-US",
-            timezone_id="UTC",
-        )
-
-
-async def get_browser_page() -> Page:
-    """Get a new browser page from thread-local browser."""
-    await _ensure_thread_browser()
-    page: Page = await _thread_local.context.new_page()
-    return page
+@asynccontextmanager
+async def get_browser_page() -> AsyncGenerator[Page, None]:
+    """Get a browser page from the global browser manager."""
+    await ensure_browser_started()
+    async with browser_manager.get_page() as page:
+        yield page
 
 
 async def stop_browser() -> None:
