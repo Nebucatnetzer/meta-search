@@ -79,7 +79,6 @@ convention = "pep257"
 wrap-summaries = 88
 wrap-descriptions = 88
 exclude = ["migrations"]
->>>>>>> 16e943e (Adjust tooling)
 
 [tool.coverage.run]
 omit = [
