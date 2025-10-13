@@ -104,6 +104,7 @@
               p.requests
               p.types-beautifulsoup4
               p.types-requests
+              p.vulture
               p.zweili-search-editable
             ]);
             pythonProd = myPython.withPackages (p: [

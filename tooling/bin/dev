@@ -70,6 +70,8 @@ lint() {
     mypy --config-file="$DEVENV_ROOT/pyproject.toml" "$DEVENV_ROOT/src"
     echo "Running ruff"
     ruff check src tests
+    echo "Running vulture"
+    vulture
     set -e
 }
 descriptions["lint"]="Run the linters against the src directory."
