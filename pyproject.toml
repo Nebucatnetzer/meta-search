@@ -19,19 +19,47 @@ packages = [
   "src/zweili_search/",
 ]
 
+[tool.black]
+line-length = 88
+extend-exclude = '''
+/(
+  # Directories
+  \..*
+  | migrations
+)/
+'''
+
+[tool.docformatter]
+black=true
+exclude = ["migrations"]
+
 [tool.isort]
-force_single_line=true
+force_single_line = true
 line_length = 88
+extend_skip_glob = ["*/.*", "*/migrations/*"]
 
 [tool.mypy]
-strict=true
+strict = true
+exclude = [
+    "migrations",
+]
+
+[tool.pylint.main]
+recursive = true
+ignore = ["migrations"]
+load-plugins = ["pylint_django"]
+
+[tool.pylint.django]
+django-settings-module = "zweili_search.settings"
 
 [tool.ruff]
 exclude = [
-  "manage.py",
   "migrations",
 ]
-src = ["src"]
+src = [
+    "src",
+    "tests",
+]
 line-length = 88
 
 [tool.ruff.lint]
@@ -39,14 +67,31 @@ fixable = ["ALL"]
 select = [ "ALL" ]
 ignore = [
     "COM812", # trailing commas, black takes care of this
+    "ANN",    # type annotations, mypy takes care of this
+    "I001",   # import sorting, isort takes care of this
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = [
   "S101",  # Use of assert detected, we use pytest so kind of obvious
 ]
+"tooling/**/*.py" = [
+  "INP001",  # Tooling scripts don't need __init__.py
+]
 
-[tool.docformatter]
-wrap-summaries = 88
-wrap-descriptions = 88
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
 
+[tool.coverage.run]
+omit = [
+    "**/migrations/*",
+    "src/manage.py",
+    "src/zweili_search/asgi.py",
+    "src/zweili_search/wsgi.py",
+]
+[tool.pytest.ini_options]
+addopts = [
+    "--cov=src",
+    "--strict-markers",
+    "--strict-config",
+]

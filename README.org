@@ -36,8 +36,67 @@ Having a site that supports this feature makes it particularly convenient, as yo
 - Bing
 - Yandex
 
+*** Custom default search engine
+
+Sometimes it can happen that we don't get any results.
+In that case I would like to forward the query to a customizable default search engine.
+For the moment this is hardcoded to DuckDuckGo.
+
 ** Setup
-*** Getting started
+*** Development Environment
+
+To set up the development environment, you need:
+
+- *Nix* (required) - Used for reproducible development environments
+- *direnv* (recommended) - Automatically loads the development environment when entering the project directory
+
+**** Setting up the development environment:
+
+1. Install Nix if you haven't already: https://nixos.org/download.html
+2. Install direnv (optional but recommended): https://direnv.net/docs/installation.html
+3. Clone the repository and enter the directory:
+
+   #+begin_src shell
+   git clone <repository-url>
+   cd meta-search
+   #+end_src
+
+4. If using direnv, allow the environment:
+
+   #+begin_src shell
+   direnv allow
+   #+end_src
+
+5. If not using direnv, manually enter the Nix shell:
+
+   #+begin_src shell
+   nix develop
+   #+end_src
+
+**** Running tests:
+
+Once in the development environment, you can run tests using pytest:
+
+#+begin_src shell
+# Run all tests
+pytest
+
+# Run specific test file
+pytest tests/test_meta_search.py
+
+# Run tests in verbose mode
+pytest -v
+#+end_src
+
+**** Coding standards
+
+- All the Python code has to be formatted with ~black~, ~docformatter~, ~isort~. The easiest way to do is, is via running ~dev fmt~.
+- For linting the following tools are used and configured in ~pyproject.toml~:
+  - mypy
+  - pylint
+  - ruff
+
+*** Production Deployment
 
 The easiest way is to get the ~docker-compose.yml~ from this repository and adjust the ~image:~ options to make sure it pulls the pre-built images from GitHub.
 Afterwards use ~podman compose up~ to run it.

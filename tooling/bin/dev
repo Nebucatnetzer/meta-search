@@ -48,7 +48,19 @@ debug() {
 descriptions["debug"]="Run the tests and drop into the debugger on failure."
 tasks["debug"]=debug
 
+fmt() {
+    echo "black"
+    fd --extension py --exec-batch black || true
+    echo "docformatter"
+    fd --extension py --exec docformatter --in-place || true
+    echo "isort"
+    fd --extension py --exec isort || true
+}
+descriptions["fmt"]="Formatt all the Python code."
+tasks["fmt"]=fmt
+
 lint() {
+    set +e
     echo "Running pylint"
     pylint \
         --rc-file="$DEVENV_ROOT/pyproject.toml" \
@@ -56,17 +68,16 @@ lint() {
         -E "$DEVENV_ROOT/src"
     echo "Running mypy"
     mypy --config-file="$DEVENV_ROOT/pyproject.toml" "$DEVENV_ROOT/src"
+    echo "Running ruff"
+    ruff check src tests
+    set -e
 }
 descriptions["lint"]="Run the linters against the src directory."
 tasks["lint"]=lint
 
 test() {
-    DJANGO_SETTINGS_MODULE=zweili_search.settings.ram_test pytest \
-        -nauto \
-        --nomigrations \
-        --cov-config="$DEVENV_ROOT/.coveragerc" \
-        --cov-report=html \
-        "$DEVENV_ROOT/src"
+    cd "$DEVENV_ROOT" || return
+    pytest
 }
 descriptions["test"]="Run the tests in the RAM DB and write a coverage report."
 tasks["test"]=test
