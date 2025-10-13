@@ -85,21 +85,26 @@
 
             pythonDev = myPython.withPackages (p: [
               p.beautifulsoup4
+              p.black
               p.django
               p.django-types
+              p.docformatter
               p.gunicorn
-              p.zweili-search-editable
+              p.isort
               p.mypy
+              p.pylint
+              p.pylint-django
               p.pylsp-mypy
               p.pytest
               p.pytest-cov
+              p.pytest-django
               p.pytest-xdist
-              p.python-lsp-server
               p.python-lsp-ruff
+              p.python-lsp-server
               p.requests
-              p.ruff
               p.types-beautifulsoup4
               p.types-requests
+              p.zweili-search-editable
             ]);
             pythonProd = myPython.withPackages (p: [
               p.beautifulsoup4
@@ -203,15 +208,15 @@
                 DEBUG = "True";
                 NO_SSL = "True";
                 PC_PORT_NUM = "9999";
+                SECRET_KEY = "dummy";
               };
               packages = [
                 (pkgs.buildEnv {
                   name = "zweili-metasearch-devShell";
                   paths = [
-                    pkgs.black
-                    pkgs.isort
                     pkgs.nodePackages.prettier
                     pkgs.nixfmt-rfc-style
+                    pkgs.ruff
                     pkgs.shellcheck
                     pkgs.shfmt
                     pkgs.skopeo
