@@ -7,16 +7,5 @@
         <input type="text" id="query" name="query" autofocus="autofocus" required value="{{ request.GET.query|default_if_none:'' }}">
         <button type="submit">Submit</button>
       </form>
-
-      {% if results %}
-      <ul>
-      {% for result in results %}
-          <li>
-              <a href="{{result.url}}">{{ result.title }}</a><br>
-              <small>{{ result.url }}</small>
-          </li>
-      {% endfor %}
-      </ul>
-      {% endif %}
     {% endif %}
 {% endblock content %}
