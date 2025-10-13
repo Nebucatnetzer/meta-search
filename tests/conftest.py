@@ -1,6 +1,7 @@
 """Global pytest configuration for tests."""
 
 import os
+from typing import TYPE_CHECKING, Any, cast
 
 import django
 import pytest
@@ -12,12 +13,15 @@ if not settings.configured:
 
 from django.contrib.auth import get_user_model
 
+if TYPE_CHECKING:
+    from search.models import SearchUser
+
 User = get_user_model()
 
 
 @pytest.fixture
-def user(db):
+def user(db: Any) -> "SearchUser":  # noqa: ARG001
     """Create a test user with database access."""
-    return User.objects.create_user(
+    return cast("SearchUser", User.objects.create_user(
         username="testuser", password="testpass123"
-    )
+    ))

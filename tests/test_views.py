@@ -1,7 +1,7 @@
 """Test cases for Django views."""
 
 import os
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import django
 from django.conf import settings
@@ -17,6 +17,7 @@ from search.models import Bang
 from . import constants
 
 if TYPE_CHECKING:
+    from django.http import HttpResponseRedirect
     from django.test import Client
 
     from search.models import SearchUser
@@ -30,7 +31,7 @@ def test_index_view_requires_login(client: "Client") -> None:
     assert response.status_code == constants.HTTP_FOUND
 
 
-def test_index_view_no_query(user: "SearchUser", client: "Client") -> None:
+def test_index_view_no_query(user: "SearchUser", client: "Client") -> None:  # noqa: ARG001
     """Test index view with no query parameter."""
     client.login(username="testuser", password="testpass123")
     response = client.get("/")
@@ -50,17 +51,17 @@ def test_index_view_with_bang_redirect(user: "SearchUser", client: "Client") -> 
     response = client.get("/", {"query": "!g test search"})
 
     assert response.status_code == constants.HTTP_FOUND
-    redirect_response = response
+    redirect_response = cast("HttpResponseRedirect", response)
     assert redirect_response.url == "https://www.google.com/search?q=test+search"
 
 
-def test_index_view_with_query_no_bang(user: "SearchUser", client: "Client") -> None:
+def test_index_view_with_query_no_bang(user: "SearchUser", client: "Client") -> None:  # noqa: ARG001
     """Test index view with regular search query."""
     client.login(username="testuser", password="testpass123")
     response = client.get("/", {"query": "test search"})
 
     assert response.status_code == constants.HTTP_FOUND
-    redirect_response = response
+    redirect_response = cast("HttpResponseRedirect", response)
     assert "searxng.zweili.org" in redirect_response.url
     assert "test+search" in redirect_response.url
 
@@ -76,7 +77,7 @@ def test_index_view_with_custom_search_engine(
     response = client.get("/", {"query": "test search"})
 
     assert response.status_code == constants.HTTP_FOUND
-    redirect_response = response
+    redirect_response = cast("HttpResponseRedirect", response)
     assert "bing.com" in redirect_response.url
     assert "test+search" in redirect_response.url
 

@@ -67,7 +67,7 @@ lint() {
         -j 0 \
         -E "$DEVENV_ROOT/src"
     echo "Running mypy"
-    mypy --config-file="$DEVENV_ROOT/pyproject.toml" "$DEVENV_ROOT/src"
+    mypy --config-file="$DEVENV_ROOT/pyproject.toml" "$DEVENV_ROOT/src" "$DEVENV_ROOT/tests"
     echo "Running ruff"
     ruff check src tests
     echo "Running vulture"
