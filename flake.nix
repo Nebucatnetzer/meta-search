@@ -12,7 +12,7 @@
       ...
     }@inputs:
     flake-parts.lib.mkFlake { inherit inputs self; } (
-      top@{ ... }:
+      { ... }:
       {
         flake = {
           # Put your original flake attributes here.
@@ -25,7 +25,6 @@
         ];
         perSystem =
           {
-            config,
             pkgs,
             ...
           }:
@@ -62,7 +61,7 @@
             pyproject = pkgs.lib.importTOML ./pyproject.toml;
             myPython = pkgs.python312.override {
               self = myPython;
-              packageOverrides = pyfinal: pyprev: {
+              packageOverrides = pyfinal: _: {
                 zweili-search = pyfinal.buildPythonPackage {
                   pname = "zweili-search";
                   inherit (pyproject.project) version;
@@ -215,6 +214,7 @@
                 (pkgs.buildEnv {
                   name = "zweili-metasearch-devShell";
                   paths = [
+                    pkgs.deadnix
                     pkgs.nodePackages.prettier
                     pkgs.nixfmt-rfc-style
                     pkgs.ruff
