@@ -42,6 +42,7 @@ In my case this will the an SearXNG instance.
 
 To set up the development environment, you need:
 
+- *Git* (required)
 - *Nix* (required) - Used for reproducible development environments
 - *direnv* (recommended) - Automatically loads the development environment when entering the project directory
 
@@ -51,22 +52,22 @@ To set up the development environment, you need:
 2. Install direnv (optional but recommended): https://direnv.net/docs/installation.html
 3. Clone the repository and enter the directory:
 
-   #+begin_src shell
-   git clone <repository-url>
-   cd meta-search
-   #+end_src
+#+begin_src shell
+git clone <repository-url>
+cd meta-search
+#+end_src
 
 4. If using direnv, allow the environment:
 
-   #+begin_src shell
-   direnv allow
-   #+end_src
+#+begin_src shell
+direnv allow
+#+end_src
 
 5. If not using direnv, manually enter the Nix shell:
 
-   #+begin_src shell
-   nix develop
-   #+end_src
+#+begin_src shell
+nix develop
+#+end_src
 
 **** Running tests:
 
