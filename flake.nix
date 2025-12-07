@@ -39,6 +39,14 @@
           root
           ;
       };
+      packages."aarch64-linux" = import ./tooling/nix/packages {
+        inherit
+          myPython
+          pkgs
+          pyproject
+          root
+          ;
+      };
       devShells."${system}".default = import ./tooling/nix/dev_shell { inherit myPython pkgs; };
     };
 }
