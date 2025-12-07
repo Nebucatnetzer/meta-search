@@ -1,0 +1,26 @@
+DEVENV_ROOT=$(git rev-parse --show-toplevel)
+export DEVENV_ROOT
+
+DEVENV_STATE="$DEVENV_ROOT/.devenv/state"
+export DEVENV_STATE
+mkdir -p "$DEVENV_STATE"
+
+PATH="$DEVENV_ROOT/tooling/bin:$PATH"
+export PATH
+
+ZWEILI_SEARCH_DB_DIR="$DEVENV_STATE"
+export ZWEILI_SEARCH_DB_DIR
+
+ZWEILI_STATIC_ROOT="$DEVENV_STATE"
+export ZWEILI_STATIC_ROOT
+
+DEBUG="True"
+export DEBUG
+NO_SSL="True"
+export NO_SSL
+
+PC_PORT_NUM="9999"
+export PC_PORT_NUM
+
+SECRET_KEY="dummy"
+export SECRET_KEY
