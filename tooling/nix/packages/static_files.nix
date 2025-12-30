@@ -55,6 +55,7 @@ in
 dockerTools.buildLayeredImage {
   name = "zweili-search-nginx";
   tag = "latest";
+  architecture = "arm64";
   contents = [
     fakeNss
     nginx

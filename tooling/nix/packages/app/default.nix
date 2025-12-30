@@ -6,7 +6,7 @@
 dockerTools.buildImage {
   name = "zweili-search-app";
   tag = "latest";
-  architecture = "linux/arm64";
+  architecture = "arm64";
   copyToRoot = buildEnv {
     name = "image-root";
     paths = [

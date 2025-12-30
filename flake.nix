@@ -7,8 +7,9 @@
     let
       system = "x86_64-linux";
       pkgs = inputs.nixpkgs.legacyPackages."${system}";
-      pyproject = pkgs.lib.importTOML ./pyproject.toml;
-      myPython = pkgs.python312.override {
+      aarch64pkgs = inputs.nixpkgs.legacyPackages."aarch64-linux";
+      pyproject = aarch64pkgs.lib.importTOML ./pyproject.toml;
+      myPython = aarch64pkgs.python312.override {
         self = myPython;
         packageOverrides = pyfinal: _: {
           zweili-search = pyfinal.buildPythonPackage {
@@ -40,9 +41,9 @@
           ;
       };
       packages."aarch64-linux" = import ./tooling/nix/packages {
+        pkgs = aarch64pkgs;
         inherit
           myPython
-          pkgs
           pyproject
           root
           ;
