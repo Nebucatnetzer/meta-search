@@ -1,5 +1,9 @@
 * TODOs
 ** NEXT Read ENV files :features:
+** NEXT Implement flake-utils :bugs:
+
+I need proper multi-arch support in this repo because I build container images for aarch64-linux but I develop the whole thing on x86_64-linux.
+
 ** NEXT Run it as a systemd service :enhancements:
 
 The container is overkill.
@@ -22,6 +26,10 @@ https://stackoverflow.com/questions/49890551/start-gunicorn-from-python
 https://docs.gunicorn.org/en/stable/custom.html
 
 https://stackoverflow.com/questions/46701614/how-to-do-database-migration-using-python-script
+
+** NEXT Rewrite to nix2container :enhancements:
+
+https://github.com/nlewo/nix2container
 
 ** NEXT Add logging
 
