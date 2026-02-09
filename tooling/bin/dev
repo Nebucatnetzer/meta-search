@@ -26,7 +26,7 @@ declare -A descriptions
 run() {
     _setup
     find . -name __pycache__ -o -name "*.pyc" -delete
-    python ./src/manage.py runserver
+    gunicorn --workers 4 --reload zweili_search.wsgi:application
 }
 descriptions["run"]="Start the webserver."
 tasks["run"]=run
@@ -86,7 +86,6 @@ tasks["test"]=test
 
 image() {
     podman load <$(nix build .#app-image --no-link --print-out-paths)
-    podman load <$(nix build .#nginx-image --no-link --print-out-paths)
     podman compose up --force-recreate --pull-always --remove-orphans
 }
 descriptions["image"]="Build and load docker images."

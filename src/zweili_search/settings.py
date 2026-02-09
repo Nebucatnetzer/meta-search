@@ -35,9 +35,6 @@ ZWEILI_SEARCH_DB_DIR = Path(
     os.getenv("ZWEILI_SEARCH_DB_DIR", "/var/lib/zweili_search/"),
 )
 ZWEILI_SEARCH_DOMAIN = os.getenv("ZWEILI_SEARCH_DOMAIN", socket.getfqdn())
-ZWEILI_SEARCH_STATIC_ROOT = Path(
-    os.getenv("ZWEILI_SEARCH_DB_DIR", "/var/lib/zweili_search/"),
-)
 
 ALLOWED_HOSTS = [
     "localhost",
@@ -62,12 +59,14 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
     "search.apps.SearchConfig",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -143,14 +142,21 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "static/"
-STATIC_ROOT = ZWEILI_SEARCH_STATIC_ROOT.joinpath("static")
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
+WHITENOISE_ALLOW_ALL_ORIGINS = False

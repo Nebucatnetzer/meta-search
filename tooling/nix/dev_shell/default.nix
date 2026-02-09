@@ -18,6 +18,7 @@ let
     p.python-lsp-ruff
     p.python-lsp-server
     p.vulture
+    p.whitenoise
     p.zweili-search-editable
   ]);
 in

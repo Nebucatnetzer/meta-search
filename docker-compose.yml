@@ -9,9 +9,5 @@ services:
       ZWEILI_SEARCH_DOMAIN: "foo.example.org"
     volumes:
       - .devenv/state/docker-volume:/var/lib/zweili_search/
-
-  nginx:
-    image: ghcr.io/nebucatnetzer/meta-search/zweili-search-nginx:latest
-    # image: localhost/zweili-search-nginx:latest
     ports:
       - 8000:80
