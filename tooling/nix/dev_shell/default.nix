@@ -30,7 +30,7 @@ pkgs.mkShell {
       paths = [
         pkgs.deadnix
         pkgs.nodePackages.prettier
-        pkgs.nixfmt-rfc-style
+        pkgs.nixfmt
         pkgs.ruff
         pkgs.shellcheck
         pkgs.shfmt
