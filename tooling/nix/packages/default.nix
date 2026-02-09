@@ -6,10 +6,8 @@
 }:
 let
   pythonProd = myPython.withPackages (p: [
-    p.beautifulsoup4
     p.django
     p.gunicorn
-    p.requests
     p.zweili-search
   ]);
 in

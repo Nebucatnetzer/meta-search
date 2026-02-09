@@ -1,7 +1,6 @@
 { myPython, pkgs }:
 let
   pythonDev = myPython.withPackages (p: [
-    p.beautifulsoup4
     p.black
     p.django
     p.django-types
@@ -18,9 +17,6 @@ let
     p.pytest-xdist
     p.python-lsp-ruff
     p.python-lsp-server
-    p.requests
-    p.types-beautifulsoup4
-    p.types-requests
     p.vulture
     p.zweili-search-editable
   ]);
