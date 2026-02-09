@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
   };
   outputs =
     { ... }@inputs:
@@ -9,7 +9,7 @@
       pkgs = inputs.nixpkgs.legacyPackages."${system}";
       aarch64pkgs = inputs.nixpkgs.legacyPackages."aarch64-linux";
       pyproject = aarch64pkgs.lib.importTOML ./pyproject.toml;
-      myPython = aarch64pkgs.python312.override {
+      myPython = aarch64pkgs.python3.override {
         self = myPython;
         packageOverrides = pyfinal: _: {
           zweili-search = pyfinal.buildPythonPackage {
