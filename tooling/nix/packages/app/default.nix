@@ -1,8 +1,11 @@
 {
   buildEnv,
   dockerTools,
-  pythonProd,
+  myPython,
 }:
+let
+  pythonRuntime = myPython.withPackages (p: [ p.zweili-search ]);
+in
 dockerTools.buildImage {
   name = "zweili-search-app";
   tag = "latest";
@@ -10,12 +13,13 @@ dockerTools.buildImage {
   copyToRoot = buildEnv {
     name = "image-root";
     paths = [
-      pythonProd
+      pythonRuntime
+      myPython.pkgs.zweili-search
     ];
   };
   config = {
     Cmd = [
-      "${pythonProd.interpreter}"
+      "${pythonRuntime.interpreter}"
       ./docker-cmd.py
     ];
     Env = [

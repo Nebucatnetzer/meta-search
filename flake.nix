@@ -16,7 +16,20 @@
             inherit (pyproject.project) version;
             pyproject = true;
             src = root;
-            propagatedBuildInputs = [ pyfinal.hatchling ];
+            buildInputs = [ pyfinal.hatchling ];
+            propagatedBuildInputs = [
+              pyfinal.django
+              pyfinal.gunicorn
+              pyfinal.whitenoise
+            ];
+            postInstall = ''
+              export ZWEILI_SEARCH_DB_DIR="$out"
+              export DJANGO_SETTINGS_MODULE=zweili_search.settings
+              export MEDIA_ROOT=/dev/null
+              export SECRET_KEY=dummy
+              export DATABASE_URL=sqlite://:memory:
+              ${myPython.interpreter} -m django collectstatic --noinput
+            '';
           };
           # An editable package with a script that loads our mutable location
           zweili-search-editable = pyfinal.mkPythonEditablePackage {
