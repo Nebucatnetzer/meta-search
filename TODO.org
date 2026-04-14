@@ -1,9 +1,5 @@
 * TODOs
 ** NEXT Read ENV files :features:
-** NEXT Implement flake-utils :bugs:
-
-I need proper multi-arch support in this repo because I build container images for aarch64-linux but I develop the whole thing on x86_64-linux.
-
 ** NEXT Run it as a systemd service :enhancements:
 
 The container is overkill.
@@ -123,3 +119,10 @@ CLOSED: [2025-07-20 Sun 20:15]
 
 I think Django makes the most sense as I would like to add a login feature and I know that Django provides robust support in this area.
 Flask would be totally fine if I wouldn't need to store user settings and therefore requiere a login page.
+** CANCELLED Implement flake-utils :bugs:
+CLOSED: [2026-04-14 Tue 22:54]
+
+I'm moving away from aarch64
+
+I need proper multi-arch support in this repo because I build container images for aarch64-linux but I develop the whole thing on x86_64-linux.
+
