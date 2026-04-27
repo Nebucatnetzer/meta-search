@@ -1,6 +1,7 @@
 """Start script used inside the container CMD."""
 
 import multiprocessing
+import os
 
 import django
 import gunicorn.app.base
@@ -42,9 +43,15 @@ def number_of_workers() -> int:
 
 def start_gunicorn() -> None:
     """Start the Gunicorn server with Django application."""
+    reload_enabled = os.getenv("GUNICORN_RELOAD", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
     options: dict[str, str | int | bool] = {
         "bind": "0.0.0.0:8000",
-        "reload": True,
+        "reload": reload_enabled,
         "workers": number_of_workers(),
     }
     app = get_wsgi_application()
