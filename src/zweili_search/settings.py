@@ -17,6 +17,14 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def env_bool(name: str, default: bool = False) -> bool:
+    """Parse boolean environment variables reliably."""
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
@@ -30,7 +38,7 @@ if not SECRET_KEY:
     raise ValueError(msg)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", None)
+DEBUG = env_bool("DEBUG", default=False)
 ZWEILI_SEARCH_DB_DIR = Path(
     os.getenv("ZWEILI_SEARCH_DB_DIR", "/var/lib/zweili_search/"),
 )
