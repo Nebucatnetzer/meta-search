@@ -29,7 +29,7 @@ pkgs.mkShell {
       name = "zweili-metasearch-devShell";
       paths = [
         pkgs.deadnix
-        pkgs.nodePackages.prettier
+        pkgs.prettier
         pkgs.nixfmt
         pkgs.ruff
         pkgs.shellcheck
