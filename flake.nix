@@ -24,12 +24,7 @@
       };
     in
     {
-      packages."${system}" = import ./tooling/nix/packages {
-        inherit
-          myPython
-          pkgs
-          ;
-      };
+      packages."${system}" = import ./tooling/nix/packages { inherit myPython; };
       devShells."${system}".default = import ./tooling/nix/dev_shell { inherit myPython pkgs; };
       nixosModules.default = import ./tooling/nix/module.nix;
       checks."${system}".nixos-module = pkgs.testers.runNixOSTest (

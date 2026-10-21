@@ -1,10 +1,12 @@
 * TODOs
 ** NEXT Read ENV files :features:
-** NEXT Run it as a systemd service :enhancements:
+** DONE Run it as a systemd service :enhancements:
+CLOSED: [2026-10-21 Wed 21:40]
 
 The container is overkill.
 
-** NEXT Can I make the image smaller? :enhancements:
+** CANCELLED Can I make the image smaller? :enhancements:
+CLOSED: [2026-10-21 Wed 21:40]
 
 https://jade.fyi/blog/optimizing-nix-docker/
 
@@ -23,7 +25,8 @@ https://docs.gunicorn.org/en/stable/custom.html
 
 https://stackoverflow.com/questions/46701614/how-to-do-database-migration-using-python-script
 
-** NEXT Rewrite to nix2container :enhancements:
+** CANCELLED Rewrite to nix2container :enhancements:
+CLOSED: [2026-10-21 Wed 21:40]
 
 https://github.com/nlewo/nix2container
 

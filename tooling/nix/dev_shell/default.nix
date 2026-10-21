@@ -34,7 +34,6 @@ pkgs.mkShell {
         pkgs.ruff
         pkgs.shellcheck
         pkgs.shfmt
-        pkgs.skopeo
       ];
       pathsToLink = [ "/bin" ];
     })

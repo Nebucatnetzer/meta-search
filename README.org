@@ -94,19 +94,71 @@ pytest -v
 
 *** Production Deployment
 
-The easiest way is to get the ~docker-compose.yml~ from this repository and adjust the ~image:~ options to make sure it pulls the pre-built images from GitHub.
-Afterwards use ~podman compose up~ to run it.
-The site will then be accessible under: [[http://localhost:8000]]
+The flake provides a NixOS module.
+Add the flake as an input and import ~nixosModules.default~:
 
-The default admin user is: =admin=
-The password is: =password=
+#+begin_src nix
+{
+  inputs.meta-search.url = "git+https://git.zweili.org/Nebucatnetzer/meta-search";
 
-*** Configuration
+  outputs =
+    { nixpkgs, meta-search, ... }:
+    {
+      nixosConfigurations.myhost = nixpkgs.lib.nixosSystem {
+        modules = [
+          meta-search.nixosModules.default
+          {
+            services.zweili-search = {
+              enable = true;
+              domain = "search.example.org";
+              environmentFile = "/run/secrets/zweili-search.env";
+            };
+          }
+        ];
+      };
+    };
+}
+#+end_src
 
-In order to have a production ready system you need to tweak a few configurations.
+The environment file must contain at least ~SECRET_KEY=...~.
+Keep it outside the Nix store, for example with agenix or sops-nix.
 
-- ~ZWEILI_SEARCH_DOMAIN~ :: The domain under which you search site should be accessible. E.g. =foo.example.org=
-- ~ZWEILI_SEARCH_DB_DIR~ :: The path where you want to store the SQLite DB. By default it is =/var/lib/zweili_search=
+Gunicorn listens on =127.0.0.1:8000=.
+Put a reverse proxy with TLS in front of it.
+
+Create the first admin user with the management wrapper.
+It runs as the service user with the service environment:
+
+#+begin_src shell
+sudo zweili-search-manage createsuperuser
+#+end_src
+
+*** Module options
+
+| Option                                   | Default                    | Description                                               |
+|------------------------------------------+----------------------------+-----------------------------------------------------------|
+| ~services.zweili-search.enable~          | ~false~                    | Enable the service.                                       |
+| ~services.zweili-search.domain~          | none, required             | Public domain. Added to ~ALLOWED_HOSTS~ and CSRF origins. |
+| ~services.zweili-search.environmentFile~ | none, required             | File with ~SECRET_KEY~. systemd reads it as root.         |
+| ~services.zweili-search.listenAddress~   | ~"127.0.0.1"~              | Address for Gunicorn.                                     |
+| ~services.zweili-search.port~            | ~8000~                     | Port for Gunicorn.                                        |
+| ~services.zweili-search.workers~         | ~null~                     | Number of Gunicorn workers. Null means CPUs plus one.     |
+| ~services.zweili-search.stateDir~        | ~"/var/lib/zweili_search"~ | Directory for the SQLite database.                        |
+| ~services.zweili-search.package~         | built with host nixpkgs    | The package to run.                                       |
+
+A ~stateDir~ outside =/var/lib= is created with tmpfiles.
+It must not be under =/home=, =/root= or =/run/user=.
+
+*** Configuration without the module
+
+The application reads these environment variables:
+
+- ~SECRET_KEY~ :: Required. The Django secret key.
+- ~ZWEILI_SEARCH_DOMAIN~ :: The domain under which your search site is accessible. E.g. =foo.example.org=. The default is the FQDN of the host.
+- ~ZWEILI_SEARCH_DB_DIR~ :: The directory for the SQLite DB. The default is =/var/lib/zweili_search=.
+- ~ZWEILI_SEARCH_BIND~ :: The address and port for Gunicorn. The default is =0.0.0.0:8000=.
+- ~ZWEILI_SEARCH_WORKERS~ :: The number of Gunicorn workers. The default is the number of CPUs plus one.
+- ~DEBUG~ :: Enables Django debug mode. The default is =false=. Never enable it in production.
 
 ** Usage
 
