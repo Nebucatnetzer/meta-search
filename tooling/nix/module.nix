@@ -6,11 +6,12 @@
 }:
 let
   cfg = config.services.zweili-search;
-  stateDirectory = "/var/lib/zweili_search";
+  # systemd creates StateDirectory= only below /var/lib.
+  useSystemdStateDirectory = lib.hasPrefix "/var/lib/" cfg.stateDir;
   environment = {
     DJANGO_SETTINGS_MODULE = "zweili_search.settings";
     ZWEILI_SEARCH_BIND = "${cfg.listenAddress}:${toString cfg.port}";
-    ZWEILI_SEARCH_DB_DIR = stateDirectory;
+    ZWEILI_SEARCH_DB_DIR = cfg.stateDir;
     ZWEILI_SEARCH_DOMAIN = cfg.domain;
   }
   // lib.optionalAttrs (cfg.workers != null) { ZWEILI_SEARCH_WORKERS = toString cfg.workers; };
@@ -33,7 +34,7 @@ let
         --quiet \
         --uid=zweili-search \
         --gid=zweili-search \
-        --working-directory=${stateDirectory} \
+        --working-directory=${lib.escapeShellArg cfg.stateDir} \
         --property=EnvironmentFile=${lib.escapeShellArg cfg.environmentFile} \
         ${lib.concatStringsSep " " setenvArguments} \
         ${lib.getExe' cfg.package "zweili-search-manage"} "$@"
@@ -69,6 +70,18 @@ in
       default = null;
       description = "Number of Gunicorn workers. Null means one more than the number of CPUs.";
     };
+    stateDir = lib.mkOption {
+      type = lib.types.pathWith {
+        inStore = false;
+        absolute = true;
+      };
+      default = "/var/lib/zweili_search";
+      example = "/srv/zweili-search";
+      description = ''
+        Directory for the SQLite database. Below /var/lib, systemd manages it with StateDirectory=.
+        Other paths are created with tmpfiles and must not be under /home, /root or /run/user.
+      '';
+    };
     environmentFile = lib.mkOption {
       type = lib.types.str;
       example = "/run/secrets/zweili-search.env";
@@ -86,6 +99,14 @@ in
     };
     users.groups.zweili-search = { };
 
+    systemd.tmpfiles.settings.zweili-search = lib.mkIf (!useSystemdStateDirectory) {
+      ${cfg.stateDir}.d = {
+        user = "zweili-search";
+        group = "zweili-search";
+        mode = "0750";
+      };
+    };
+
     environment.systemPackages = [ manage ];
 
     systemd.services.zweili-search = {
@@ -98,9 +119,10 @@ in
         EnvironmentFile = cfg.environmentFile;
         User = "zweili-search";
         Group = "zweili-search";
-        StateDirectory = "zweili_search";
-        StateDirectoryMode = "0750";
-        WorkingDirectory = stateDirectory;
+        StateDirectory = lib.mkIf useSystemdStateDirectory (lib.removePrefix "/var/lib/" cfg.stateDir);
+        StateDirectoryMode = lib.mkIf useSystemdStateDirectory "0750";
+        ReadWritePaths = lib.mkIf (!useSystemdStateDirectory) [ cfg.stateDir ];
+        WorkingDirectory = cfg.stateDir;
         Restart = "on-failure";
 
         CapabilityBoundingSet = "";
