@@ -11,26 +11,7 @@
       myPython = pkgs.python3.override {
         self = myPython;
         packageOverrides = pyfinal: _: {
-          zweili-search = pyfinal.buildPythonPackage {
-            pname = "zweili-search";
-            inherit (pyproject.project) version;
-            pyproject = true;
-            src = root;
-            buildInputs = [ pyfinal.hatchling ];
-            propagatedBuildInputs = [
-              pyfinal.django
-              pyfinal.gunicorn
-              pyfinal.whitenoise
-            ];
-            postInstall = ''
-              export ZWEILI_SEARCH_DB_DIR="$out"
-              export DJANGO_SETTINGS_MODULE=zweili_search.settings
-              export MEDIA_ROOT=/dev/null
-              export SECRET_KEY=dummy
-              export DATABASE_URL=sqlite://:memory:
-              ${myPython.interpreter} -m django collectstatic --noinput
-            '';
-          };
+          zweili-search = pyfinal.callPackage ./tooling/nix/packages/zweili-search.nix { };
           # An editable package with a script that loads our mutable location
           zweili-search-editable = pyfinal.mkPythonEditablePackage {
             # Inherit project metadata from pyproject.toml
@@ -41,7 +22,6 @@
           };
         };
       };
-      root = ./.;
     in
     {
       packages."${system}" = import ./tooling/nix/packages {
@@ -51,5 +31,9 @@
           ;
       };
       devShells."${system}".default = import ./tooling/nix/dev_shell { inherit myPython pkgs; };
+      nixosModules.default = import ./tooling/nix/module.nix;
+      checks."${system}".nixos-module = pkgs.testers.runNixOSTest (
+        import ./tooling/nix/tests/nixos-module.nix { inherit (inputs) self; }
+      );
     };
 }

@@ -9,4 +9,5 @@ in
   ci-tools = pkgs.callPackage ./ci_tools.nix { };
   default = app-image;
   inherit app-image;
+  zweili-search = myPython.pkgs.zweili-search;
 }

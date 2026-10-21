@@ -1,17 +1,22 @@
-"""Start script used inside the container CMD."""
+"""Run the migrations and serve the application with Gunicorn."""
 
 import multiprocessing
 import os
+import sys
 
 import django
-import gunicorn.app.base
+import gunicorn.app.base  # type: ignore[import-untyped] # no stubs in nixpkgs
 from django.contrib.auth import get_user_model
 from django.core.handlers.wsgi import WSGIHandler
 from django.core.management import call_command
+from django.core.management import execute_from_command_line
 from django.core.wsgi import get_wsgi_application
 
+DEFAULT_BIND = "0.0.0.0:8000"
+TRUE_VALUES = {"1", "true", "yes", "on"}
 
-class GunicornApplication(gunicorn.app.base.BaseApplication):
+
+class GunicornApplication(gunicorn.app.base.BaseApplication):  # type: ignore[misc] # gunicorn is untyped
     """Custom Gunicorn application to run Django with specific config."""
 
     def __init__(self, app: WSGIHandler, options: dict[str, str | int | bool]) -> None:
@@ -36,26 +41,26 @@ class GunicornApplication(gunicorn.app.base.BaseApplication):
         return self.application
 
 
-def number_of_workers() -> int:
-    """Calculate the optimal number of Gunicorn workers based on CPU count."""
-    return multiprocessing.cpu_count() + 1
+def env_flag(name: str) -> bool:
+    """Return True if the environment variable is set to a true value."""
+    return os.getenv(name, "").strip().lower() in TRUE_VALUES
 
 
-def start_gunicorn() -> None:
-    """Start the Gunicorn server with Django application."""
-    reload_enabled = os.getenv("GUNICORN_RELOAD", "").strip().lower() in {
-        "1",
-        "true",
-        "yes",
-        "on",
+def worker_count() -> int:
+    """Return the number of Gunicorn workers, by default one more than the CPUs."""
+    workers = os.getenv("ZWEILI_SEARCH_WORKERS")
+    if workers is None:
+        return multiprocessing.cpu_count() + 1
+    return int(workers)
+
+
+def gunicorn_options() -> dict[str, str | int | bool]:
+    """Build the Gunicorn options from the environment."""
+    return {
+        "bind": os.getenv("ZWEILI_SEARCH_BIND", DEFAULT_BIND),
+        "reload": env_flag("GUNICORN_RELOAD"),
+        "workers": worker_count(),
     }
-    options: dict[str, str | int | bool] = {
-        "bind": "0.0.0.0:8000",
-        "reload": reload_enabled,
-        "workers": number_of_workers(),
-    }
-    app = get_wsgi_application()
-    GunicornApplication(app=app, options=options).run()
 
 
 def run_migrations() -> None:
@@ -77,11 +82,16 @@ def setup_admin() -> None:
 
 
 def main() -> None:
-    """Run migrations, setup admin user, and start the Gunicorn server."""
+    """Run migrations, optionally create the admin user, and start Gunicorn."""
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "zweili_search.settings")
     run_migrations()
-    setup_admin()
-    start_gunicorn()
+    if env_flag("ZWEILI_SEARCH_CREATE_DEFAULT_ADMIN"):
+        setup_admin()
+    app = get_wsgi_application()
+    GunicornApplication(app=app, options=gunicorn_options()).run()
 
 
-if __name__ == "__main__":
-    main()
+def manage() -> None:
+    """Run Django management commands with the project settings."""
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "zweili_search.settings")
+    execute_from_command_line(sys.argv)

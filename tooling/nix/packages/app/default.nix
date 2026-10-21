@@ -1,6 +1,7 @@
 {
   buildEnv,
   dockerTools,
+  lib,
   myPython,
 }:
 let
@@ -14,16 +15,13 @@ dockerTools.buildImage {
     name = "image-root";
     paths = [
       pythonRuntime
-      myPython.pkgs.zweili-search
     ];
   };
   config = {
-    Cmd = [
-      "${pythonRuntime.interpreter}"
-      ./docker-cmd.py
-    ];
+    Cmd = [ (lib.getExe myPython.pkgs.zweili-search) ];
     Env = [
       "DJANGO_SETTINGS_MODULE=zweili_search.settings"
+      "ZWEILI_SEARCH_CREATE_DEFAULT_ADMIN=true"
     ];
     ExposedPorts = {
       "8000/tcp" = { };

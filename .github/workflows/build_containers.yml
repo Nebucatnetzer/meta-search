@@ -21,3 +21,12 @@ jobs:
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Build app image
         run: ./tooling/bin/build-app-image.sh
+
+  nixos-module-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4.1.1
+      - uses: cachix/install-nix-action@v31.3.0
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Run the NixOS module test
+        run: nix build .#checks.x86_64-linux.nixos-module --print-build-logs
