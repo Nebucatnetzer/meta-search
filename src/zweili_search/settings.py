@@ -17,7 +17,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-def env_bool(name: str, default: bool = False) -> bool:
+def env_bool(name: str, *, default: bool = False) -> bool:
     """Parse boolean environment variables reliably."""
     value = os.getenv(name)
     if value is None:

@@ -24,7 +24,7 @@ def index(request: HttpRequest) -> HttpResponse:
 
     if query:
         # Check for user bang
-        url, query_without_bang = resolve_bang(
+        url, _query_without_bang = resolve_bang(
             query=query,
             user=request.user,
         )
