@@ -16,6 +16,7 @@ readme = {file = "README.org", content-type = "text/plain"}
 [project.scripts]
 zweili-search = "zweili_search.server:main"
 zweili-search-manage = "zweili_search.server:manage"
+zweili-search-setup = "zweili_search.server:setup"
 
 [tool.hatch.build.targets.wheel]
 packages = [

@@ -126,7 +126,13 @@ Keep it outside the Nix store, for example with agenix or sops-nix.
 Gunicorn listens on =127.0.0.1:8000=.
 Put a reverse proxy with TLS in front of it.
 
-Create the first admin user with the management wrapper.
+Before the first start, ~zweili-search-setup.service~ runs the migrations and creates an admin user.
+The user name is ~adminUsername~, by default =admin=.
+The password is =password=.
+Log in and change it right away.
+The setup service never changes an existing user.
+
+You can create more users with the management wrapper.
 It runs as the service user with the service environment:
 
 #+begin_src shell
@@ -144,6 +150,7 @@ sudo zweili-search-manage createsuperuser
 | ~services.zweili-search.port~            | ~8000~                     | Port for Gunicorn.                                        |
 | ~services.zweili-search.workers~         | ~null~                     | Number of Gunicorn workers. Null means CPUs plus one.     |
 | ~services.zweili-search.stateDir~        | ~"/var/lib/zweili_search"~ | Directory for the SQLite database.                        |
+| ~services.zweili-search.adminUsername~   | ~"admin"~                  | Name of the admin user that the setup service creates.    |
 | ~services.zweili-search.package~         | built with host nixpkgs    | The package to run.                                       |
 
 A ~stateDir~ outside =/var/lib= is created with tmpfiles.

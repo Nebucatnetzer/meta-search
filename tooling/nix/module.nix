@@ -40,6 +40,40 @@ let
         ${lib.getExe' cfg.package "zweili-search-manage"} "$@"
     '';
   };
+  # The setup service and the main service run as the same user with the same sandbox.
+  commonServiceConfig = {
+    EnvironmentFile = cfg.environmentFile;
+    User = "zweili-search";
+    Group = "zweili-search";
+    StateDirectory = lib.mkIf useSystemdStateDirectory (lib.removePrefix "/var/lib/" cfg.stateDir);
+    StateDirectoryMode = lib.mkIf useSystemdStateDirectory "0750";
+    ReadWritePaths = lib.mkIf (!useSystemdStateDirectory) [ cfg.stateDir ];
+    WorkingDirectory = cfg.stateDir;
+
+    CapabilityBoundingSet = "";
+    LockPersonality = true;
+    NoNewPrivileges = true;
+    PrivateDevices = true;
+    PrivateTmp = true;
+    ProtectClock = true;
+    ProtectControlGroups = true;
+    ProtectHome = true;
+    ProtectHostname = true;
+    ProtectKernelLogs = true;
+    ProtectKernelModules = true;
+    ProtectKernelTunables = true;
+    ProtectSystem = "strict";
+    RestrictAddressFamilies = [
+      "AF_INET"
+      "AF_INET6"
+      "AF_UNIX"
+    ];
+    RestrictNamespaces = true;
+    RestrictRealtime = true;
+    RestrictSUIDSGID = true;
+    SystemCallArchitectures = "native";
+    UMask = "0077";
+  };
 in
 {
   options.services.zweili-search = {
@@ -82,6 +116,14 @@ in
         Other paths are created with tmpfiles and must not be under /home, /root or /run/user.
       '';
     };
+    adminUsername = lib.mkOption {
+      type = lib.types.str;
+      default = "admin";
+      description = ''
+        Name of the admin user that zweili-search-setup.service creates if it does not exist.
+        The new user gets the password `password`. Change it after the first login.
+      '';
+    };
     environmentFile = lib.mkOption {
       type = lib.types.str;
       example = "/run/secrets/zweili-search.env";
@@ -114,40 +156,23 @@ in
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
       inherit environment;
-      serviceConfig = {
+      serviceConfig = commonServiceConfig // {
         ExecStart = lib.getExe cfg.package;
-        EnvironmentFile = cfg.environmentFile;
-        User = "zweili-search";
-        Group = "zweili-search";
-        StateDirectory = lib.mkIf useSystemdStateDirectory (lib.removePrefix "/var/lib/" cfg.stateDir);
-        StateDirectoryMode = lib.mkIf useSystemdStateDirectory "0750";
-        ReadWritePaths = lib.mkIf (!useSystemdStateDirectory) [ cfg.stateDir ];
-        WorkingDirectory = cfg.stateDir;
         Restart = "on-failure";
+      };
+    };
 
-        CapabilityBoundingSet = "";
-        LockPersonality = true;
-        NoNewPrivileges = true;
-        PrivateDevices = true;
-        PrivateTmp = true;
-        ProtectClock = true;
-        ProtectControlGroups = true;
-        ProtectHome = true;
-        ProtectHostname = true;
-        ProtectKernelLogs = true;
-        ProtectKernelModules = true;
-        ProtectKernelTunables = true;
-        ProtectSystem = "strict";
-        RestrictAddressFamilies = [
-          "AF_INET"
-          "AF_INET6"
-          "AF_UNIX"
-        ];
-        RestrictNamespaces = true;
-        RestrictRealtime = true;
-        RestrictSUIDSGID = true;
-        SystemCallArchitectures = "native";
-        UMask = "0077";
+    systemd.services.zweili-search-setup = {
+      description = "Zweili search migrations and admin user";
+      requiredBy = [ "zweili-search.service" ];
+      before = [ "zweili-search.service" ];
+      environment = environment // {
+        ZWEILI_SEARCH_ADMIN_USERNAME = cfg.adminUsername;
+      };
+      serviceConfig = commonServiceConfig // {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStart = lib.getExe' cfg.package "zweili-search-setup";
       };
     };
   };

@@ -69,26 +69,38 @@ def run_migrations() -> None:
     call_command("migrate", interactive=False)
 
 
-def setup_admin() -> None:
-    """Create default admin user if it doesn't exist."""
+def setup_admin(username: str) -> bool:
+    """Create the admin user with the default password if it doesn't exist.
+
+    An existing user keeps its password and permissions. Return True if the user
+    was created.
+    """
     user_model = get_user_model()
-    if not user_model.objects.filter(username="admin").exists():
-        user = user_model.objects.create_user(
-            "admin", password="password"  # noqa: S106
-        )
-        user.is_superuser = True
-        user.is_staff = True
-        user.save()
+    if user_model.objects.filter(username=username).exists():
+        return False
+    user = user_model.objects.create_user(
+        username,
+        password="password",  # noqa: S106 - documented default, the README says to change it
+    )
+    user.is_superuser = True
+    user.is_staff = True
+    user.save()
+    return True
 
 
 def main() -> None:
-    """Run migrations, optionally create the admin user, and start Gunicorn."""
+    """Run migrations and start Gunicorn."""
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "zweili_search.settings")
     run_migrations()
-    if env_flag("ZWEILI_SEARCH_CREATE_DEFAULT_ADMIN"):
-        setup_admin()
     app = get_wsgi_application()
     GunicornApplication(app=app, options=gunicorn_options()).run()
+
+
+def setup() -> None:
+    """Run migrations and create the admin user."""
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "zweili_search.settings")
+    run_migrations()
+    setup_admin(os.getenv("ZWEILI_SEARCH_ADMIN_USERNAME", "admin"))
 
 
 def manage() -> None:

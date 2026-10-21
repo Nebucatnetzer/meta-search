@@ -18,11 +18,17 @@ in
   nodes.standard = baseConfig;
   nodes.custom = {
     imports = [ baseConfig ];
-    services.zweili-search.stateDir = "/srv/zweili-search";
+    services.zweili-search = {
+      stateDir = "/srv/zweili-search";
+      adminUsername = "root-admin";
+    };
   };
   testScript = ''
     start_all()
-    for node, state_dir in [(standard, "/var/lib/zweili_search"), (custom, "/srv/zweili-search")]:
+    for node, state_dir, admin in [
+        (standard, "/var/lib/zweili_search", "admin"),
+        (custom, "/srv/zweili-search", "root-admin"),
+    ]:
         node.wait_for_unit("zweili-search.service")
         node.wait_for_open_port(8000)
         node.succeed("curl --fail --silent --header 'Host: search.example.org' http://127.0.0.1:8000/accounts/login/ | grep --quiet csrfmiddlewaretoken")
@@ -30,5 +36,12 @@ in
         node.succeed("zweili-search-manage check --deploy --fail-level ERROR")
         node.succeed(f"test \"$(stat --format=%U:%a {state_dir})\" = zweili-search:750")
         node.succeed(f"test \"$(stat --format=%U {state_dir}/db.sqlite3)\" = zweili-search")
+        node.succeed("systemctl is-active zweili-search-setup.service")
+        node.succeed(
+            "zweili-search-manage shell --command "
+            + "'from search.models import SearchUser; "
+            + f"admin = SearchUser.objects.get(username=\"{admin}\"); "
+            + "assert admin.is_superuser and admin.check_password(\"password\")'"
+        )
   '';
 }
